@@ -36,17 +36,22 @@ SEXP psll_suspend(SEXP p);
 SEXP psll_resume(SEXP p);
 SEXP psll_terminate(SEXP p);
 SEXP psll_kill(SEXP p);
+SEXP psll_num_fds(SEXP p);
+SEXP psll_open_files(SEXP p);
+SEXP psll_interrupt(SEXP p, SEXP ctrlc, SEXP interrupt_path);
 
 /* System API */
 
 SEXP ps__os_type();
 SEXP ps__pids();
 SEXP ps__boot_time();
+SEXP ps__users();
 
 /* Generic utils used from R */
 
 SEXP ps__init(SEXP psenv, SEXP constenv);
 SEXP ps__kill_if_env(SEXP marker, SEXP after, SEXP pid, SEXP sig);
+SEXP ps__find_if_env(SEXP marker, SEXP after, SEXP pid);
 
 SEXP psp__zombie();
 SEXP psp__waitpid(SEXP pid);

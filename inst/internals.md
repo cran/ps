@@ -25,12 +25,15 @@ ps_environ_raw   .  >  Z
 ps_num_threads   .  >  Z
 ps_cpu_times     .  >  Z
 ps_memory_info   .  >  Z
+ps_num_fds       .  >  Z
+ps_open_files    .  >  Z
 ps_children      .  >  +
 ps_send_signal   .  <  +
 ps_suspend       .  <  +
 ps_resume        .  <  +
 ps_terminate     .  <  +
 ps_kill          .  <  +
+ps_interrupt     .  <  +
 ```
 
 ```

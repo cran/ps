@@ -7,6 +7,7 @@
 #include <tlhelp32.h>
 #include <string.h>
 #include <math.h>
+#include <wtsapi32.h>
 
 static void psll_finalizer(SEXP p) {
   ps_handle_t *handle = R_ExternalPtrAddr(p);
@@ -474,7 +475,7 @@ SEXP psll_suspend(SEXP p) {
   }
 
   PROTECT(ret = ps__proc_suspend(handle->pid));
-  if (isNull(ret)) ps__throw_error();
+  if (isNull(ret)) goto error;
 
   UNPROTECT(1);
   return R_NilValue;
@@ -501,7 +502,7 @@ SEXP psll_resume(SEXP p) {
   }
 
   PROTECT(ret = ps__proc_resume(handle->pid));
-  if (isNull(ret)) ps__throw_error();
+  if (isNull(ret)) goto error;
 
   UNPROTECT(1);
   return R_NilValue;
@@ -634,5 +635,285 @@ SEXP ps__kill_if_env(SEXP marker, SEXP after, SEXP pid, SEXP sig) {
   }
 
   UNPROTECT(1);
+  return R_NilValue;
+}
+
+SEXP ps__find_if_env(SEXP marker, SEXP after, SEXP pid) {
+  const char *cmarker = CHAR(STRING_ELT(marker, 0));
+  double cafter = REAL(after)[0];
+  long cpid = INTEGER(pid)[0];
+  SEXP env;
+  size_t i, len;
+  SEXP phandle;
+  ps_handle_t *handle;
+  double ctime = 0;
+  FILETIME ftCreate;
+
+  /* Filter on start time */
+  int ret = ps__create_time_raw(cpid, &ftCreate);
+  if (ret) ps__throw_error();
+  ctime = ps__filetime_to_unix(ftCreate);
+  if (ctime < cafter - 1) return R_NilValue;
+
+  PROTECT(phandle = psll_handle(pid, R_NilValue));
+  handle = R_ExternalPtrAddr(phandle);
+
+  PROTECT(env = ps__get_environ(cpid));
+  if (isNull(env)) ps__throw_error();
+
+  len = LENGTH(env);
+
+  for (i = 0; i < len; i++) {
+    if (strstr(CHAR(STRING_ELT(env, i)), cmarker)) {
+      UNPROTECT(2);
+      PS__CHECK_HANDLE(handle);
+      return phandle;
+    }
+  }
+
+  UNPROTECT(2);
+  return R_NilValue;
+}
+
+SEXP psll_num_fds(SEXP p) {
+  ps_handle_t *handle = R_ExternalPtrAddr(p);
+  HANDLE  hProcess = NULL;
+  DWORD handleCount;
+
+  if (!handle) error("Process pointer cleaned up already");
+
+  hProcess = ps__handle_from_pid(handle->pid);
+  if (hProcess != NULL) {
+    if (GetProcessHandleCount(hProcess, &handleCount)) {
+      CloseHandle(hProcess);
+      PS__CHECK_HANDLE(handle);
+      return ScalarInteger(handleCount);
+    }
+  }
+
+  /* Cleanup on error */
+  if (hProcess != NULL) CloseHandle(hProcess);
+  PS__CHECK_HANDLE(handle);
+  ps__set_error_from_windows_error(0);
+  ps__throw_error();
+  return R_NilValue;
+}
+
+SEXP psll_open_files(SEXP p) {
+  ps_handle_t *handle = R_ExternalPtrAddr(p);
+  HANDLE processHandle = NULL;
+  DWORD access = PROCESS_DUP_HANDLE | PROCESS_QUERY_INFORMATION;
+  SEXP result;
+
+  if (!handle) error("Process pointer cleaned up already");
+
+  processHandle = ps__handle_from_pid_waccess(handle->pid, access);
+  if (processHandle == NULL) {
+    PS__CHECK_HANDLE(handle);
+    ps__set_error_from_windows_error(0);
+    ps__throw_error();
+  }
+
+  PROTECT(result = ps__get_open_files(handle->pid, processHandle));
+
+  CloseHandle(processHandle);
+
+  PS__CHECK_HANDLE(handle);
+
+  if (isNull(result)) {
+    ps__set_error_from_windows_error(0);
+    ps__throw_error();
+  }
+
+  UNPROTECT(1);
+  return result;
+}
+
+SEXP psll_interrupt(SEXP p, SEXP ctrlc, SEXP interrupt_path) {
+  ps_handle_t *handle = R_ExternalPtrAddr(p);
+  const char *cinterrupt_path = CHAR(STRING_ELT(interrupt_path, 0));
+  int cctrlc = LOGICAL(ctrlc)[0];
+  WCHAR *wpath;
+  SEXP running;
+  int iret;
+  STARTUPINFOW startup = { 0 };
+  PROCESS_INFORMATION info = { 0 };
+  HANDLE hProcess;
+  char arguments[100];
+  WCHAR *warguments;
+  DWORD process_flags;
+
+  if (!handle) error("Process pointer cleaned up already");
+
+  hProcess = ps__handle_from_pid(handle->pid);
+  if (!hProcess) goto error;
+
+  running = ps__is_running(handle);
+  if (!LOGICAL(running)[0]) {
+    ps__no_such_process(handle->pid, 0);
+    goto error;
+  }
+
+  iret = ps__utf8_to_utf16(cinterrupt_path, &wpath);
+  if (iret) goto error;
+
+  iret = snprintf(arguments, sizeof(arguments) - 1, "interrupt.exe %d %s", handle->pid,
+		  cctrlc ? "c" : "break");
+  if  (iret < 0) goto error;
+
+  iret = ps__utf8_to_utf16(arguments, &warguments);
+  if (iret) goto error;
+
+  startup.cb = sizeof(startup);
+  startup.lpReserved = NULL;
+  startup.lpDesktop = NULL;
+  startup.lpTitle = NULL;
+  startup.dwFlags = 0;
+
+  startup.cbReserved2 = 0;
+  startup.lpReserved2 = 0;
+
+  process_flags = CREATE_UNICODE_ENVIRONMENT | CREATE_NO_WINDOW;
+
+  iret = CreateProcessW(
+    /* lpApplicationName =    */ wpath,
+    /* lpCommandLine =        */ warguments,
+    /* lpProcessAttributes =  */ NULL,
+    /* lpThreadAttributes =   */ NULL,
+    /* bInheritHandles =      */ 0,
+    /* dwCreationFlags =      */ process_flags,
+    /* lpEnvironment =        */ NULL,
+    /* lpCurrentDirectory =   */ NULL,
+    /* lpStartupInfo =        */ &startup,
+    /* lpProcessInformation = */ &info);
+
+  if (!iret) {
+    ps__set_error_from_errno(0);
+    goto error;
+  }
+
+  CloseHandle(info.hThread);
+  CloseHandle(info.hProcess);
+
+  return R_NilValue;
+
+ error:
+  if (hProcess) CloseHandle(hProcess);
+  ps__throw_error();
+  return R_NilValue;
+}
+
+SEXP ps__users() {
+  HANDLE hServer = WTS_CURRENT_SERVER_HANDLE;
+  WCHAR *buffer_user = NULL;
+  LPTSTR buffer_addr = NULL;
+  PWTS_SESSION_INFO sessions = NULL;
+  DWORD count;
+  DWORD i;
+  DWORD sessionId;
+  DWORD bytes;
+  PWTS_CLIENT_ADDRESS address;
+  char address_str[50];
+  double unix_time;
+
+  PWINSTATIONQUERYINFORMATIONW WinStationQueryInformationW;
+  WINSTATION_INFO station_info;
+  HINSTANCE hInstWinSta = NULL;
+  ULONG returnLen;
+
+  SEXP retlist, raddress, username;
+
+  hInstWinSta = LoadLibraryA("winsta.dll");
+  WinStationQueryInformationW = (PWINSTATIONQUERYINFORMATIONW) \
+    GetProcAddress(hInstWinSta, "WinStationQueryInformationW");
+
+  if (WTSEnumerateSessions(hServer, 0, 1, &sessions, &count) == 0) {
+    ps__set_error_from_windows_error(0);
+    goto error;
+  }
+
+  PROTECT(retlist = allocVector(VECSXP, count));
+
+  for (i = 0; i < count; i++) {
+    SET_VECTOR_ELT(retlist, i, R_NilValue);
+    raddress = R_NilValue;
+    sessionId = sessions[i].SessionId;
+    if (buffer_user != NULL)
+      WTSFreeMemory(buffer_user);
+    if (buffer_addr != NULL)
+      WTSFreeMemory(buffer_addr);
+
+    buffer_user = NULL;
+    buffer_addr = NULL;
+
+    // username
+    bytes = 0;
+    if (WTSQuerySessionInformationW(hServer, sessionId, WTSUserName,
+				    &buffer_user, &bytes) == 0) {
+      ps__set_error_from_windows_error(0);
+      goto error;
+    }
+    if (bytes <= 2) continue;
+
+    // address
+    bytes = 0;
+    if (WTSQuerySessionInformation(hServer, sessionId, WTSClientAddress,
+				   &buffer_addr, &bytes) == 0) {
+      ps__set_error_from_windows_error(0);
+      goto error;
+    }
+
+    address = (PWTS_CLIENT_ADDRESS) buffer_addr;
+    if (address->AddressFamily == 0 &&  // AF_INET
+	(address->Address[0] || address->Address[1] ||
+	 address->Address[2] || address->Address[3])) {
+      snprintf(address_str,
+	       sizeof(address_str),
+	       "%u.%u.%u.%u",
+	       address->Address[0],
+	       address->Address[1],
+	       address->Address[2],
+	       address->Address[3]);
+      raddress = mkString(address_str);
+    } else {
+      raddress = mkString("");
+    }
+    PROTECT(raddress);
+
+    // login time
+    if (!WinStationQueryInformationW(hServer,
+				     sessionId,
+				     WinStationInformation,
+				     &station_info,
+				     sizeof(station_info),
+				     &returnLen))  {
+	goto error;
+      }
+
+    unix_time = ps__filetime_to_unix(station_info.ConnectTime);
+
+    PROTECT(username = ps__utf16_to_strsxp(buffer_user, -1));
+
+    SET_VECTOR_ELT(
+      retlist, i,
+      ps__build_list("OOOdi", username, ScalarString(NA_STRING), raddress,
+		     unix_time, NA_INTEGER));
+    UNPROTECT(2);
+  }
+
+  WTSFreeMemory(sessions);
+  WTSFreeMemory(buffer_user);
+  WTSFreeMemory(buffer_addr);
+  FreeLibrary(hInstWinSta);
+
+  UNPROTECT(1);
+  return retlist;
+
+ error:
+  if (hInstWinSta != NULL) FreeLibrary(hInstWinSta);
+  if (sessions != NULL) WTSFreeMemory(sessions);
+  if (buffer_user != NULL) WTSFreeMemory(buffer_user);
+  if (buffer_addr != NULL) WTSFreeMemory(buffer_addr);
+  ps__throw_error();
   return R_NilValue;
 }

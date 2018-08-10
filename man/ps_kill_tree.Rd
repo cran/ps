@@ -3,12 +3,15 @@
 \name{ps_mark_tree}
 \alias{ps_mark_tree}
 \alias{with_process_cleanup}
+\alias{ps_find_tree}
 \alias{ps_kill_tree}
 \title{Mark a process and its (future) child tree}
 \usage{
 ps_mark_tree()
 
 with_process_cleanup(expr)
+
+ps_find_tree(marker)
 
 ps_kill_tree(marker, sig = signals()$SIGKILL)
 }
@@ -25,6 +28,8 @@ Windows this argument is ignored currently.}
 \code{ps_mark_tree()} returns the name of the environment variable,
 which can be used as the \code{marker} in \code{ps_kill_tree()}.
 
+\code{ps_find_tree()} returns a list of \code{ps_handle} objects.
+
 \code{ps_kill_tree()} returns the pids of the killed processes, in a named
 integer vector. The names are the file names of the executables, when
 available.
@@ -40,12 +45,20 @@ related to the current R process. (I.e. they are not connected in the
 process tree.)
 }
 \details{
+\code{ps_find_tree()} finds the processes that set the supplied environment
+variable and returns them in a list.
+
 \code{ps_kill_tree()} finds the processes that set the supplied environment
 variable, and kills them (or sends them the specified signal on Unix).
 
 \code{with_process_cleanup()} evaluates an R expression, and cleans up all
 external processes that were started by the R process while evaluating
 the expression. This includes child processes of child processes, etc.,
-recursively.
+recursively. It returns a list with entries: \code{result} is the result of
+the expression, \code{visible} is TRUE if the expression should be printed
+to the screen, and \code{process_cleanup} is a named integer vector of the
+cleaned pids, names are the process names.
+
+If \code{expr} throws an error, then so does \code{with_process_cleanup()}, the
+same error. Nevertheless processes are still cleaned up.
 }
-\keyword{internal}

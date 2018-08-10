@@ -33,11 +33,13 @@ test_that("pid", {
   ps <- ps_handle(p1$get_pid())
   expect_identical(ps_pid(ps), p1$get_pid())
 
+  skip_if_no_processx()
+
   ## Even if it has quit already
   p2 <- processx::process$new(px(), c("sleep", "10"))
-  pid2 <- p2$get_pid()
   on.exit(p2$kill(), add = TRUE)
-  ps <-  ps_handle(pid2)
+  pid2 <- p2$get_pid()
+  ps <- ps_handle(pid2)
   p2$kill()
 
   expect_false(p2$is_alive())
@@ -99,6 +101,8 @@ test_that("ppid", {
 test_that("name", {
   ## Argument check
   expect_error(ps_name(123), class = "invalid_argument")
+
+  skip_if_no_processx()
 
   p1 <- processx::process$new(px(), c("sleep", "10"))
   on.exit(p1$kill(), add = TRUE)
@@ -230,6 +234,8 @@ test_that("children", {
   ## Argument check
   expect_error(ps_children(123), class = "invalid_argument")
 
+  skip_if_no_processx()
+
   p1 <- processx::process$new(px(), c("sleep", "10"))
   on.exit(p1$kill(), add = TRUE)
   p2 <- processx::process$new(px(), c("sleep", "10"))
@@ -251,4 +257,55 @@ test_that("children", {
     expect_true(p1$get_pid() %in% pids3)
     expect_true(p2$get_pid() %in% pids3)
   }
+})
+
+test_that("num_fds", {
+  skip_in_rstudio()
+  skip_on_cran()
+
+  tmp <- tempfile()
+  on.exit(unlink(tmp), add = TRUE)
+
+  me <- ps_handle()
+  orig <- ps_num_fds(me)
+
+  f <- file(tmp, open = "w")
+  on.exit(close(f), add = TRUE)
+
+  expect_equal(ps_num_fds(me), orig + 1)
+})
+
+test_that("open_files", {
+  skip_in_rstudio()
+  skip_on_cran()
+
+  tmp <- tempfile()
+  on.exit(unlink(tmp), add = TRUE)
+
+  f <- file(tmp, open = "w")
+  on.exit(try(close(f), silent = TRUE), add = TRUE)
+
+  files <- ps_open_files(ps_handle())
+  expect_true(basename(tmp) %in% basename(files$path))
+
+  close(f)
+  files <- ps_open_files(ps_handle())
+  expect_false(basename(tmp) %in% basename(files$path))
+})
+
+test_that("interrupt", {
+  skip_on_cran()
+  px <- processx::process$new(px(), c("sleep", "10"))
+  on.exit(px$kill(), add = TRUE)
+  ps <- ps_handle(px$get_pid())
+
+  expect_true(ps_is_running(ps))
+
+  ps_interrupt(ps)
+
+  deadline <- Sys.time() + 3
+  while (ps_is_running(ps) && Sys.time() < deadline) Sys.sleep(0.05)
+  expect_true(Sys.time() < deadline)
+  expect_false(ps_is_running(ps))
+  if (ps_os_type()[["POSIX"]]) expect_equal(px$get_exit_status(), -2)
 })

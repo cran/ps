@@ -9,6 +9,7 @@ static const R_CallMethodDef callMethods[]  = {
   { "ps__os_type",       (DL_FUNC) ps__os_type,       0 },
   { "ps__pids",          (DL_FUNC) ps__pids,          0 },
   { "ps__boot_time",     (DL_FUNC) ps__boot_time,     0 },
+  { "ps__users",         (DL_FUNC) ps__users,         0 },
 
   /* ps_handle API */
   { "psll_pid",          (DL_FUNC) psll_pid,          1 },
@@ -36,10 +37,14 @@ static const R_CallMethodDef callMethods[]  = {
   { "psll_resume",       (DL_FUNC) psll_resume,       1 },
   { "psll_terminate",    (DL_FUNC) psll_terminate,    1 },
   { "psll_kill",         (DL_FUNC) psll_kill,         1 },
+  { "psll_num_fds",      (DL_FUNC) psll_num_fds,      1 },
+  { "psll_open_files",   (DL_FUNC) psll_open_files,   1 },
+  { "psll_interrupt",    (DL_FUNC) psll_interrupt,    3 },
 
   /* Utils */
   { "ps__init",          (DL_FUNC) ps__init,          2 },
   { "ps__kill_if_env",   (DL_FUNC) ps__kill_if_env,   4 },
+  { "ps__find_if_env",   (DL_FUNC) ps__find_if_env,   3 },
 
   { "psp__pid_exists",   (DL_FUNC) psp__pid_exists,   1 },
   { "psp__stat_st_rdev", (DL_FUNC) psp__stat_st_rdev, 1 },

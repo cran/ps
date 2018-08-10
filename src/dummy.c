@@ -38,6 +38,7 @@ void psw__realpath()     { ps__dummy("psw__realpath"); }
 #ifndef PS__WINDOWS
 void ps__pids()          { ps__dummy("ps_pids"); }
 void ps__boot_time()     { ps__dummy("ps_boot_time"); }
+void ps__users()         { ps__users("ps_users"); }
 
 void psll_handle()       { ps__dummy("ps_handle"); }
 void psll_format()       { ps__dummy("ps_format"); }
@@ -62,9 +63,13 @@ void psll_suspend()      { ps__dummy("ps_suspend"); }
 void psll_resume()       { ps__dummy("ps_resume"); }
 void psll_terminate()    { ps__dummy("ps_terminate"); }
 void psll_kill()         { ps__dummy("ps_kill"); }
+void psll_num_fds()      { ps__dummy("ps_num_fds"); }
+void psll_open_files()   { ps__dummy("ps_open_files"); }
+void psll_interrupt()    { ps__dummy("ps_interrupt"); }
 
 void ps__init()          { /* this needs to run to load package */ }
 void ps__kill_if_env()   { ps__dummy("ps__kill_if_env"); }
+void ps__find_if_env()   { ps__dummy("ps__find_if_env"); }
 
 void psp__pid_exists()   { ps__dummy("psp__pid_exists"); }
 void psp__stat_st_rdev() { ps__dummy("psp__stat_st_rdev"); }

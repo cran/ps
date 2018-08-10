@@ -7,6 +7,7 @@
 #include <libproc.h>
 #include <errno.h>
 #include <string.h>
+#include <utmpx.h>
 
 #include "ps-internal.h"
 #include "arch/macos/process_info.h"
@@ -499,4 +500,178 @@ SEXP ps__kill_if_env(SEXP marker, SEXP after, SEXP pid, SEXP sig) {
 
   UNPROTECT(1);
   return R_NilValue;
+}
+
+SEXP ps__find_if_env(SEXP marker, SEXP after, SEXP pid) {
+  const char *cmarker = CHAR(STRING_ELT(marker, 0));
+  pid_t cpid = INTEGER(pid)[0];
+  SEXP env;
+  size_t i, len;
+  SEXP phandle;
+  ps_handle_t *handle;
+
+  PROTECT(phandle = psll_handle(pid, R_NilValue));
+  handle = R_ExternalPtrAddr(phandle);
+
+  PROTECT(env = ps__get_environ(cpid));
+  if (isNull(env)) {
+    ps__set_error_from_errno();
+    ps__throw_error();
+  }
+
+  len = LENGTH(env);
+
+  for (i = 0; i < len; i++) {
+    if (strstr(CHAR(STRING_ELT(env, i)), cmarker)) {
+      UNPROTECT(2);
+      PS__CHECK_HANDLE(handle);
+      return phandle;
+    }
+  }
+
+  UNPROTECT(2);
+  return R_NilValue;
+}
+
+SEXP psll_num_fds(SEXP p) {
+  ps_handle_t *handle = R_ExternalPtrAddr(p);
+  struct proc_fdinfo *fds_pointer;
+  int pidinfo_result;
+  int num;
+  pid_t pid;
+
+  if (!handle) error("Process pointer cleaned up already");
+
+  pid = handle->pid;
+
+  pidinfo_result = proc_pidinfo(pid, PROC_PIDLISTFDS, 0, NULL, 0);
+  if (pidinfo_result <= 0) ps__check_for_zombie(handle);
+
+  fds_pointer = malloc(pidinfo_result);
+  if (fds_pointer == NULL) {
+    ps__no_memory("");
+    ps__throw_error();
+  }
+
+  pidinfo_result = proc_pidinfo(pid, PROC_PIDLISTFDS, 0, fds_pointer,
+				pidinfo_result);
+
+  if (pidinfo_result <= 0) {
+    free(fds_pointer);
+    ps__check_for_zombie(handle);
+  }
+
+  num = (pidinfo_result / PROC_PIDLISTFD_SIZE);
+  free(fds_pointer);
+
+  PS__CHECK_HANDLE(handle);
+
+  return ScalarInteger(num);
+}
+
+SEXP psll_open_files(SEXP p) {
+  ps_handle_t *handle = R_ExternalPtrAddr(p);
+
+  long pid;
+  int pidinfo_result;
+  int iterations;
+  int i;
+  unsigned long nb;
+
+  struct proc_fdinfo *fds_pointer = NULL;
+  struct proc_fdinfo *fdp_pointer;
+  struct vnode_fdinfowithpath vi;
+
+  SEXP result;
+
+  if (!handle) error("Process pointer cleaned up already");
+
+  pid = handle->pid;
+
+  pidinfo_result = ps__proc_pidinfo(pid, PROC_PIDLISTFDS, 0, NULL, 0);
+  if (pidinfo_result <= 0) goto error;
+
+  fds_pointer = malloc(pidinfo_result);
+  if (fds_pointer == NULL) {
+    ps__no_memory("");
+    goto error;
+  }
+  pidinfo_result = ps__proc_pidinfo(
+    pid, PROC_PIDLISTFDS, 0, fds_pointer, pidinfo_result);
+
+  if (pidinfo_result <= 0) goto error;
+
+  iterations = (pidinfo_result / PROC_PIDLISTFD_SIZE);
+
+  PROTECT(result = allocVector(VECSXP, iterations));
+
+  for (i = 0; i < iterations; i++) {
+    fdp_pointer = &fds_pointer[i];
+
+    if (fdp_pointer->proc_fdtype == PROX_FDTYPE_VNODE) {
+      errno = 0;
+      nb = proc_pidfdinfo((pid_t)pid,
+			  fdp_pointer->proc_fd,
+			  PROC_PIDFDVNODEPATHINFO,
+			  &vi,
+			  sizeof(vi));
+
+      // --- errors checking
+      if ((nb <= 0) || nb < sizeof(vi)) {
+	if ((errno == ENOENT) || (errno == EBADF)) {
+	  // no such file or directory or bad file descriptor;
+	  // let's assume the file has been closed or removed
+	  continue;
+	} else {
+	  ps__set_error(
+	    "proc_pidinfo(PROC_PIDFDVNODEPATHINFO) failed for %d", (int) pid);
+	  goto error;
+	}
+      }
+      // --- /errors checking
+
+      SET_VECTOR_ELT(
+	result, i,
+	ps__build_list("si", vi.pvip.vip_path, (int) fdp_pointer->proc_fd));
+    }
+  }
+
+  free(fds_pointer);
+
+  PS__CHECK_HANDLE(handle);
+
+  UNPROTECT(1);
+  return result;
+
+ error:
+  if (fds_pointer != NULL) free(fds_pointer);
+  ps__check_for_zombie(handle);
+  return R_NilValue;
+}
+
+SEXP ps__users() {
+  struct utmpx *utx;
+  SEXP result;
+  PROTECT_INDEX pidx;
+  int len = 10, num = 0;
+
+  PROTECT_WITH_INDEX(result = allocVector(VECSXP, len), &pidx);
+
+  while ((utx = getutxent()) != NULL) {
+
+    if (utx->ut_type != USER_PROCESS) continue;
+
+    if (++num == len) {
+      len *= 2;
+      REPROTECT(result = Rf_lengthgets(result, len), pidx);
+    }
+    SET_VECTOR_ELT(
+      result, num,
+      ps__build_list("sssdi", utx->ut_user, utx->ut_line, utx->ut_host,
+		     (double) PS__TV2DOUBLE(utx->ut_tv), utx->ut_pid));
+  }
+
+  endutxent();
+  UNPROTECT(1);
+  return result;
 }

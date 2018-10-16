@@ -15,7 +15,7 @@ Named real vector or length four: \code{user}, \code{system},
 non-Linux systems.
 }
 \description{
-All times are measued in seconds:
+All times are measured in seconds:
 \itemize{
 \item \code{user}: Amount of time that this process has been scheduled in user
 mode.
@@ -32,13 +32,13 @@ Throws a \code{zombie_process()} error for zombie processes.
 }
 \seealso{
 Other process handle functions: \code{\link{ps_children}},
-  \code{\link{ps_cmdline}}, \code{\link{ps_create_time}},
-  \code{\link{ps_cwd}}, \code{\link{ps_environ}},
-  \code{\link{ps_exe}}, \code{\link{ps_handle}},
-  \code{\link{ps_interrupt}}, \code{\link{ps_is_running}},
-  \code{\link{ps_kill}}, \code{\link{ps_memory_info}},
-  \code{\link{ps_name}}, \code{\link{ps_num_fds}},
-  \code{\link{ps_num_threads}},
+  \code{\link{ps_cmdline}}, \code{\link{ps_connections}},
+  \code{\link{ps_create_time}}, \code{\link{ps_cwd}},
+  \code{\link{ps_environ}}, \code{\link{ps_exe}},
+  \code{\link{ps_handle}}, \code{\link{ps_interrupt}},
+  \code{\link{ps_is_running}}, \code{\link{ps_kill}},
+  \code{\link{ps_memory_info}}, \code{\link{ps_name}},
+  \code{\link{ps_num_fds}}, \code{\link{ps_num_threads}},
   \code{\link{ps_open_files}}, \code{\link{ps_pid}},
   \code{\link{ps_ppid}}, \code{\link{ps_resume}},
   \code{\link{ps_send_signal}}, \code{\link{ps_status}},

@@ -2,11 +2,14 @@
 % Please edit documentation in R/low-level.R
 \name{ps_handle}
 \alias{ps_handle}
+\alias{as.character.ps_handle}
 \alias{format.ps_handle}
 \alias{print.ps_handle}
 \title{Create a process handle}
 \usage{
 ps_handle(pid = NULL, time = NULL)
+
+\method{as.character}{ps_handle}(x, ...)
 
 \method{format}{ps_handle}(x, ...)
 
@@ -31,13 +34,13 @@ Create a process handle
 }
 \seealso{
 Other process handle functions: \code{\link{ps_children}},
-  \code{\link{ps_cmdline}}, \code{\link{ps_cpu_times}},
-  \code{\link{ps_create_time}}, \code{\link{ps_cwd}},
-  \code{\link{ps_environ}}, \code{\link{ps_exe}},
-  \code{\link{ps_interrupt}}, \code{\link{ps_is_running}},
-  \code{\link{ps_kill}}, \code{\link{ps_memory_info}},
-  \code{\link{ps_name}}, \code{\link{ps_num_fds}},
-  \code{\link{ps_num_threads}},
+  \code{\link{ps_cmdline}}, \code{\link{ps_connections}},
+  \code{\link{ps_cpu_times}}, \code{\link{ps_create_time}},
+  \code{\link{ps_cwd}}, \code{\link{ps_environ}},
+  \code{\link{ps_exe}}, \code{\link{ps_interrupt}},
+  \code{\link{ps_is_running}}, \code{\link{ps_kill}},
+  \code{\link{ps_memory_info}}, \code{\link{ps_name}},
+  \code{\link{ps_num_fds}}, \code{\link{ps_num_threads}},
   \code{\link{ps_open_files}}, \code{\link{ps_pid}},
   \code{\link{ps_ppid}}, \code{\link{ps_resume}},
   \code{\link{ps_send_signal}}, \code{\link{ps_status}},

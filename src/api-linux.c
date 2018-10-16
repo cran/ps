@@ -15,7 +15,7 @@
 #include "common.h"
 
 double psll_linux_boot_time = 0;
-double psll_linux_clock_ticks = 0;
+double psll_linux_clock_period = 0;
 
 typedef struct {
   char state;
@@ -28,12 +28,16 @@ typedef struct {
 
 #define PS__TV2DOUBLE(t) ((t).tv_sec + (t).tv_usec / 1000000.0)
 
-#define PS__CHECK_STAT(stat, handle)					\
-  if (psll_linux_boot_time + (stat).starttime / psll_linux_clock_ticks != \
-      handle->create_time) {						\
-    ps__no_such_process(handle->pid, 0);				\
-    ps__throw_error();							\
-  }
+#define PS__CHECK_STAT(stat, handle)			\
+  do {							\
+    double starttime = psll_linux_boot_time +		\
+      (stat).starttime * psll_linux_clock_period;	\
+    double diff = starttime - (handle)->create_time;	\
+    if (fabs(diff) > psll_linux_clock_period) {		\
+      ps__no_such_process((handle)->pid, 0);		\
+      ps__throw_error();				\
+    }							\
+  } while (0)
 
 #define PS__CHECK_HANDLE(handle)			\
   do {							\
@@ -218,6 +222,7 @@ int psll__parse_stat_file(long pid, psl_stat_t *stat, char **name) {
 
 void ps__check_for_zombie(ps_handle_t *handle, int err) {
   psl_stat_t stat;
+  double diff;
 
   if (!handle) error("Process pointer cleaned up already");
 
@@ -226,8 +231,9 @@ void ps__check_for_zombie(ps_handle_t *handle, int err) {
     ps__throw_error();
   }
 
-  if (psll_linux_boot_time + stat.starttime / psll_linux_clock_ticks !=
-      handle->create_time) {
+  diff = (psll_linux_boot_time + stat.starttime * psll_linux_clock_period) -
+         handle->create_time;
+  if (fabs(diff) > psll_linux_clock_period) {
     ps__no_such_process(handle->pid, 0);
     err = 1;
   } else if (stat.state == 'Z') {
@@ -261,8 +267,13 @@ int psll_linux_get_boot_time() {
   return 0;
 }
 
-int psll_linux_get_clock_ticks() {
-  psll_linux_clock_ticks = sysconf(_SC_CLK_TCK);
+int psll_linux_get_clock_period(void) {
+  double psll_linux_clock_ticks = sysconf(_SC_CLK_TCK);
+  if (psll_linux_clock_ticks == -1) {
+    ps__set_error_from_errno();
+    return -1;
+  }
+  psll_linux_clock_period = 1.0 / psll_linux_clock_ticks;
   return 0;
 }
 
@@ -276,12 +287,14 @@ int psll_linux_ctime(long pid, double *ctime) {
     if (ret) return ret;
   }
 
-  if (!psll_linux_clock_ticks) {
-    ret = psll_linux_get_clock_ticks();
-    if (ret) return ret;
+  if (!psll_linux_clock_period) {
+    ret = psll_linux_get_clock_period();
+    if (ret) {
+      ps__throw_error();
+    }
   }
 
-  *ctime = psll_linux_boot_time + stat.starttime / psll_linux_clock_ticks;
+  *ctime = psll_linux_boot_time + stat.starttime * psll_linux_clock_period;
 
   return 0;
 }
@@ -710,10 +723,10 @@ SEXP psll_cpu_times(SEXP p) {
   PS__CHECK_STAT(stat, handle);
 
   PROTECT(result = allocVector(REALSXP, 4));
-  REAL(result)[0] = stat.utime / psll_linux_clock_ticks;
-  REAL(result)[1] = stat.stime / psll_linux_clock_ticks;
-  REAL(result)[2] = stat.cutime / psll_linux_clock_ticks;
-  REAL(result)[3] = stat.cstime / psll_linux_clock_ticks;
+  REAL(result)[0] = stat.utime * psll_linux_clock_period;
+  REAL(result)[1] = stat.stime * psll_linux_clock_period;
+  REAL(result)[2] = stat.cutime * psll_linux_clock_period;
+  REAL(result)[3] = stat.cstime * psll_linux_clock_period;
   PROTECT(names = ps__build_string("user", "system", "childen_user",
 				   "children_system", NULL));
   setAttrib(result, R_NamesSymbol, names);
@@ -845,7 +858,6 @@ SEXP ps__kill_if_env(SEXP r_marker, SEXP r_after, SEXP r_pid, SEXP r_sig) {
 
 SEXP ps__find_if_env(SEXP r_marker, SEXP r_after, SEXP r_pid) {
   SEXP phandle;
-  pid_t pid = INTEGER(r_pid)[0];
   int match;
   ps_handle_t *handle;
 
@@ -949,6 +961,8 @@ SEXP psll_open_files(SEXP p) {
       ps__check_for_zombie(handle, 1);
     }
 
+    if (strncmp("socket:", linkname, 7) == 0) continue;
+
     fd = strtol(entry->d_name, NULL, 10);
     if (fd == dfd) continue;
     if (++num == len) {
@@ -956,6 +970,80 @@ SEXP psll_open_files(SEXP p) {
       REPROTECT(result = Rf_lengthgets(result, len), pidx);
     }
     SET_VECTOR_ELT(result, num, ps__build_list("si", linkname, fd));
+  } while (1);
+
+  /* OSX throws on zombies, so for consistency we do the same here*/
+  ps__check_for_zombie(handle, 0);
+
+  PS__CHECK_HANDLE(handle);
+
+  UNPROTECT(1);
+  return result;
+}
+
+SEXP psll_connections(SEXP p) {
+  ps_handle_t *handle = R_ExternalPtrAddr(p);
+  char path[512];
+  DIR *dirs;
+  int ret;
+  char *linkname;
+  size_t l;
+  SEXP result;
+  PROTECT_INDEX pidx;
+  int len = 10, num = 0;
+
+  PROTECT_WITH_INDEX(result = allocVector(VECSXP, len), &pidx);
+
+  if (!handle) error("Process pointer cleaned up already");
+
+  ret = snprintf(path, sizeof(path), "/proc/%d/fd", handle->pid);
+  if (ret < 0) ps__throw_error();
+
+  dirs = opendir(path);
+  if (!dirs) ps__check_for_zombie(handle, 1);
+
+  do {
+    errno = 0;
+    struct dirent *entry = readdir(dirs);
+    if (!entry) {
+      closedir(dirs);
+      if (!errno) break;
+      ps__check_for_zombie(handle, 1);
+    }
+
+    if (!strncmp(".", entry->d_name, 2) ||
+	!strncmp("..", entry->d_name, 3)) continue;
+
+    ret = snprintf(path, sizeof(path), "/proc/%i/fd/%s", handle->pid,
+		   entry->d_name);
+    if (ret < 0) {
+      closedir(dirs);
+      ps__throw_error();
+    }
+
+    ret = psll__readlink(path, &linkname);
+    if (ret) {
+      if (errno == ENOENT || errno == ESRCH || errno == EINVAL) continue;
+      closedir(dirs);
+      ps__check_for_zombie(handle, 1);
+    }
+
+    l = strlen(linkname);
+    if (l < 10) continue;
+
+    linkname[7] = '\0';
+    if (strcmp(linkname, "socket:")) continue;
+
+    if (++num == len) {
+      len *= 2;
+      REPROTECT(result = Rf_lengthgets(result, len), pidx);
+    }
+
+    linkname[l - 1] = '\0';
+    SET_VECTOR_ELT(
+      result, num,
+      ps__build_list("ss", entry->d_name, linkname + 8));
+
   } while (1);
 
   /* OSX throws on zombies, so for consistency we do the same here*/

@@ -25,6 +25,15 @@ ps_handle <- function(pid = NULL, time = NULL) {
   .Call(psll_handle, pid, time)
 }
 
+#' @rdname ps_handle
+#' @export
+
+as.character.ps_handle <- function(x, ...) {
+  pieces <- .Call(psll_format, x)
+  paste0("<ps::ps_handle> PID=", pieces[[2]], ", NAME=", pieces[[1]],
+         ", AT=", format_unix_time(pieces[[3]]))
+}
+
 #' @param x Process handle.
 #' @param ... Not used currently.
 #'
@@ -32,9 +41,7 @@ ps_handle <- function(pid = NULL, time = NULL) {
 #' @export
 
 format.ps_handle <- function(x, ...) {
-  pieces <- .Call(psll_format, x)
-  paste0("<ps::ps_handle> PID=", pieces[[2]], ", NAME=", pieces[[1]],
-         ", AT=", format_unix_time(pieces[[3]]))
+  as.character(x, ...)
 }
 
 #' @rdname ps_handle
@@ -518,7 +525,7 @@ ps_num_threads <- function(p) {
 
 #' CPU times of the process
 #'
-#' All times are measued in seconds:
+#' All times are measured in seconds:
 #' * `user`: Amount of time that this process has been scheduled in user
 #'   mode.
 #' * `system`: Amount of time that this process has been scheduled in
@@ -557,23 +564,23 @@ ps_cpu_times <- function(p) {
 #'
 #' A list with information about memory usage. Portable fields:
 #' * `rss`: "Resident Set Size", this is the non-swapped physical memory a
-#'   process has used. On UNIX it matches "top"‘s RES column (see doc). On
+#'   process has used. On UNIX it matches "top"‘s 'RES' column (see doc). On
 #'   Windows this is an alias for `wset` field and it matches "Memory"
 #'   column of `taskmgr.exe`.
 #' * `vmem`: "Virtual Memory Size", this is the total amount of virtual
-#'   memory used by the process. On UNIX it matches "top"‘s VIRT column
+#'   memory used by the process. On UNIX it matches "top"‘s 'VIRT' column
 #'   (see doc). On Windows this is an alias for the `pagefile` field and
 #'   it matches the "Working set (memory)" column of `taskmgr.exe`.
 #'
 #' Non-portable fields:
 #' * `shared`: (Linux) memory that could be potentially shared with other
-#'   processes. This matches "top"‘s SHR column (see doc).
-#' * `text`: (Linux): aka TRS (text resident set) the amount of memory
-#'   devoted to executable code. This matches "top"‘s CODE column (see
+#'   processes. This matches "top"‘s 'SHR' column (see doc).
+#' * `text`: (Linux): aka 'TRS' (text resident set) the amount of memory
+#'   devoted to executable code. This matches "top"‘s 'CODE' column (see
 #'   doc).
-#' * `data`: (Linux): aka DRS (data resident set) the amount of physical
+#' * `data`: (Linux): aka 'DRS' (data resident set) the amount of physical
 #'   memory devoted to other than executable code. It matches "top"‘s
-#'   DATA column (see doc).
+#'   'DATA' column (see doc).
 #' * `lib`: (Linux): the memory used by shared libraries.
 #' * `dirty`: (Linux): the number of dirty pages.
 #' * `pfaults`: (macOS): number of page faults.
@@ -641,7 +648,7 @@ ps_send_signal <- function(p, sig) {
 
 #' Suspend (stop) the process
 #'
-#' Suspend process execution with `SIGSTOP` pre-emptively checking
+#' Suspend process execution with `SIGSTOP` preemptively checking
 #' whether PID has been reused. On Windows this has the effect of
 #' suspending all process threads.
 #'
@@ -672,7 +679,7 @@ ps_suspend <- function(p) {
 
 #' Resume (continue) a stopped process
 #'
-#' Resume process execution with SIGCONT pre-emptively checking
+#' Resume process execution with SIGCONT preemptively checking
 #' whether PID has been reused. On Windows this has the effect of resuming
 #' all process threads.
 #'
@@ -733,7 +740,7 @@ ps_terminate <- function(p) {
 
 #' Kill a process
 #'
-#' Kill the current process with SIGKILL pre-emptively checking
+#' Kill the current process with SIGKILL preemptively checking
 #' whether PID has been reused. On Windows it uses `TerminateProcess()`.
 #'
 #' @param p Process handle.
@@ -848,7 +855,7 @@ ps_ppid_map <- function() {
   )
 }
 
-#' Number of open file desciptors
+#' Number of open file descriptors
 #'
 #' Note that in some IDEs, e.g. RStudio or R.app on macOS, the IDE itself
 #' opens files from other threads, in addition to the files opened from the
@@ -925,13 +932,81 @@ ps_open_files <- function(p) {
   d
 }
 
-#' Interrupt a process
+#' List network connections of a process
 #'
-#' Sends `SIGINT` on POSIX, and CTRL+C or CTRL+BREAK on Windows.
+#' For a zombie process it throws a `zombie_process` error.
 #'
 #' @param p Process handle.
-#' @param ctrl_c On Windows, whether to send CTRL+C. If `FALSE`, then
-#'   CTRL+BREAK is sent. Ignored on non-Windows platforms.
+#' @return Data frame, or tibble if the _tibble_ package is available,
+#'    with columns:
+#'    * `fd`: integer file descriptor on POSIX systems, `NA` on Windows.
+#'    * `family`: Address family, string, typically `AF_UNIX`, `AF_INET` or
+#'       `AF_INET6`.
+#'    * `type`: Socket type, string, typically `SOCK_STREAM` (TCP) or
+#'       `SOCK_DGRAM` (UDP).
+#'    * `laddr`: Local address, string, `NA` for UNIX sockets.
+#'    * `lport`: Local port, integer, `NA` for UNIX sockets.
+#'    * `raddr`: Remote address, string, `NA` for UNIX sockets. This is
+#'      always `NA` for `AF_INET` sockets on Linux.
+#'    * `rport`: Remote port, integer, `NA` for UNIX sockets.
+#'    * `state`: Socket state, e.g. `CONN_ESTABLISHED`, etc. It is `NA`
+#'      for UNIX sockets.
+#'
+#' @family process handle functions
+#' @export
+#'
+#' @rawRd
+#' \section{Examples}{
+#' \Sexpr[stage=install,strip.white=FALSE,results=rd]{ps:::decorate_examples('
+#' p <- ps_handle()
+#' ps_connections(p)
+#' sc <- socketConnection("httpbin.org", port = 80)
+#' ps_connections(p)
+#' close(sc)
+#' ps_connections(p)
+#' ')}
+#' }
+#'
+#' @export
+
+ps_connections <- function(p) {
+  assert_ps_handle(p)
+  if (ps_os_type()[["LINUX"]]) return(psl_connections(p))
+
+  l <- not_null(.Call(psll_connections, p))
+
+  d <- data.frame(
+    stringsAsFactors = FALSE,
+    fd = vapply(l, "[[", integer(1), 1),
+    family = match_names(ps_env$constants$address_families,
+                       vapply(l, "[[", integer(1), 2)),
+    type = match_names(ps_env$constants$socket_types,
+                       vapply(l, "[[", integer(1), 3)),
+    laddr = vapply(l, "[[", character(1), 4),
+    lport = vapply(l, "[[", integer(1), 5),
+    raddr = vapply(l, "[[", character(1), 6),
+    rport = vapply(l, "[[", integer(1), 7),
+    state = match_names(ps_env$constants$tcp_statuses,
+                        vapply(l, "[[", integer(1), 8)))
+
+  d$laddr[d$laddr == ""] <- NA_character_
+  d$raddr[d$raddr == ""] <- NA_character_
+
+  d$lport[d$lport == 0] <- NA_integer_
+  d$rport[d$rport == 0] <- NA_integer_
+
+  requireNamespace("tibble", quietly = TRUE)
+  class(d) <- unique(c("tbl_df", "tbl", class(d)))
+  d
+}
+
+#' Interrupt a process
+#'
+#' Sends `SIGINT` on POSIX, and 'CTRL+C' or 'CTRL+BREAK' on Windows.
+#'
+#' @param p Process handle.
+#' @param ctrl_c On Windows, whether to send 'CTRL+C'. If `FALSE`, then
+#'   'CTRL+BREAK' is sent. Ignored on non-Windows platforms.
 #'
 #' @family process handle functions
 #' @export

@@ -29,6 +29,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include <signal.h>
+#include <arpa/inet.h>
 
 #include "common.h"
 #include "posix.h"
@@ -69,18 +70,68 @@ int ps__read_file(const char *path, char **buffer, size_t buffer_size) {
 
  error:
   if (fd >= 0) close(fd);
-  if (*buffer) free(*buffer);
   *buffer = 0;
   return -1;
 }
 
+SEXP ps__inet_ntop(SEXP raw, SEXP fam) {
+  char dst[INET6_ADDRSTRLEN];
+  int af = INTEGER(fam)[0];
+  const char *ret = inet_ntop(af, RAW(raw), dst, INET6_ADDRSTRLEN);
+  if (!ret) {
+    return R_NilValue;
+  } else {
+    return mkString(dst);
+  }
+}
+
+SEXP ps__define_tcp_statuses() {
+  SEXP result, names;
+
+  PROTECT(result = ps__build_string("01", "02", "03", "04", "05", "06",
+				    "07", "08", "09", "0A", "0B", "0C", 0));
+  PROTECT(names = ps__build_string("CONN_ESTABLISHED",
+				   "CONN_SYN_SENT",
+				   "CONN_SYN_RECV",
+				   "CONN_FIN_WAIT_1",
+				   "CONN_FIN_WAIT_2",
+				   "CONN_TIME_WAIT",
+				   "CONN_CLOSE",
+				   "CONN_CLOSE_WAIT",
+				   "CONN_LAST_ACK",
+				   "CONN_LISTEN",
+				   "CONN_CLOSING",
+				   "PS__CONN_NONE", 0));
+
+  setAttrib(result, R_NamesSymbol, names);
+  UNPROTECT(2);
+  return result;
+}
+
 SEXP ps__init(SEXP psenv, SEXP constenv) {
 
+  SEXP sig, err, tcp, af, st;
+
   /* Signals */
-  defineVar(install("signals"), ps__define_signals(), constenv);
+  PROTECT(sig = ps__define_signals());
+  defineVar(install("signals"), sig, constenv);
 
   /* errno values */
-  defineVar(install("errno"), ps__define_errno(), constenv);
+  PROTECT(err = ps__define_errno());
+  defineVar(install("errno"), err, constenv);
 
+  /* Connection statuses */
+  PROTECT(tcp = ps__define_tcp_statuses());
+  defineVar(install("tcp_statuses"), tcp, constenv);
+
+  /* Socket address families */
+  PROTECT(af = ps__define_socket_address_families());
+  defineVar(install("address_families"), af, constenv);
+
+  /* Socket address families */
+  PROTECT(st = ps__define_socket_types());
+  defineVar(install("socket_types"), st, constenv);
+
+  UNPROTECT(5);
   return R_NilValue;
 }

@@ -1,5 +1,5 @@
 Package: ps
-Version: 1.2.0
+Version: 1.2.1
 Title: List, Query, Manipulate System Processes
 Description: List, query and manipulate all system processes, on 'Windows',
     'Linux' and 'macOS'.
@@ -20,7 +20,7 @@ Suggests: callr, covr, curl, pingr, processx (>= 3.1.0), R6, rlang,
 RoxygenNote: 6.1.0
 Biarch: true
 NeedsCompilation: yes
-Packaged: 2018-10-10 10:51:31 UTC; gaborcsardi
+Packaged: 2018-11-06 10:09:10 UTC; gaborcsardi
 Author: Jay Loden [aut],
   Dave Daeschler [aut],
   Giampaolo Rodola' [aut],
@@ -28,4 +28,4 @@ Author: Jay Loden [aut],
   RStudio [cph]
 Maintainer: Gábor Csárdi <csardi.gabor@gmail.com>
 Repository: CRAN
-Date/Publication: 2018-10-16 20:20:03 UTC
+Date/Publication: 2018-11-06 12:40:02 UTC

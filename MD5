@@ -1,7 +1,7 @@
-72ece76145695be0e1a2d10376487a95 *DESCRIPTION
+a60b8db82634b2fdad19b6f43fbe16ab *DESCRIPTION
 94619cda11226dcde8ce0a041fc99787 *LICENSE
 d949c44929b931d2bb3ecbd5c2fcb1dd *NAMESPACE
-ca5db8f33cb220dc9a56d5629d997c95 *NEWS.md
+aa1dc28f51b0edbde0c1991feb978c14 *NEWS.md
 e9d5da70cc329bca4418e19af321c9b8 *R/error.R
 fa0ca42199d6582915ec271ed7d66ae1 *R/kill-tree.R
 23e2a93a869ade6aa7820ea58db8a68a *R/linux.R
@@ -15,7 +15,7 @@ fa4d703144abb03f03becc446ed1b16f *R/system.R
 6da412a264dbd60023d5cce65f45eb15 *R/testthat-reporter.R
 6cb6e332816afc6f47e8e72c1470dd07 *R/utils.R
 be898c7cc0323566b2743c797dd71db8 *README.md
-58eac7945bc3c6d91ede2b9e69da3823 *build/ps.pdf
+bd319e16f5f9cc7a8a367de8afd6881d *build/ps.pdf
 d8d31b225a4792ba5158a39713b5b269 *cleanup
 8e56cea9c2aee717624a51b7fa1c7cf6 *configure
 757ef8281ef2a1ebcbcc8235aeee2d0e *configure.win
@@ -77,7 +77,7 @@ ce10c82a34d03bb71c90ca98c76a5194 *src/extra.c
 aadb03f3f1b8bfc71bd93387823788f3 *src/init.c
 25293087d29ce032315b03ca28b91cf7 *src/install.libs.R
 3db35656c2495dee4cbe752196cb47b0 *src/interrupt.c
-37b048a320b80f6091aa76e4b769c330 *src/linux.c
+037bf6f2bd5b56c0a4638a291c6aed57 *src/linux.c
 de9586b337873e4d32978547bbe4948c *src/macos.c
 bd8cc28ceeaef8fca0b74b3a0d5d7a74 *src/posix.c
 0ae15b91452de2b2193049c64a162977 *src/posix.h
@@ -89,7 +89,7 @@ bfdaddf0fcd6295ec4965b82a169d217 *src/ps.h
 d5785a671f86a40a77b11710cfc98a28 *tests/testthat.R
 0868740ef98f254e3e3fdb9db8c3e9e7 *tests/testthat/helpers.R
 b7ca53c98022806ee4e1d3191c3df46f *tests/testthat/test-cleanup-reporter.R
-d70c7099830648e496a1ab9a346b6960 *tests/testthat/test-common.R
+93bf1c7f5da033440da7e0f6a0a2a0a0 *tests/testthat/test-common.R
 d44b4c2dcd8fbdbeae4136a5b8691f24 *tests/testthat/test-connections.R
 20422c425958281421b0c458d71ccd5c *tests/testthat/test-finished.R
 a1703259b0fee8e9c52ef3eff2d32970 *tests/testthat/test-kill-tree.R

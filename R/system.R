@@ -75,7 +75,7 @@ ps_users <- function() {
   d
 }
 
-#' Number of logical or phyisical CPUs
+#' Number of logical or physical CPUs
 #'
 #' If cannot be determined, it returns `NA`. It also returns `NA` on older
 #' Windows systems, e.g. Vista or older and Windows Server 2008 or older.
@@ -84,14 +84,9 @@ ps_users <- function() {
 #' @return Integer scalar.
 #' 
 #' @export
-#'
-#' @rawRd
-#' \section{Examples}{
-#' \Sexpr[stage=install,strip.white=FALSE,results=rd]{ps:::decorate_examples('
+#' @examplesIf ps::ps_is_supported()
 #' ps_cpu_count(logical = TRUE)
 #' ps_cpu_count(logical = FALSE)
-#' ')}
-#' }
 
 ps_cpu_count <- function(logical = TRUE) {
   assert_flag(logical)

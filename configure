@@ -4,7 +4,7 @@
 # from R CMD INSTALL, to have the R env vars set.
 
 if [ -z "$R_HOME" ]; then
-    echo &>2 R_HOME is not set, are you running R CMD INSTALL?
+    echo >&2 R_HOME is not set, are you running R CMD INSTALL?
     exit 1
 fi
 
@@ -43,7 +43,7 @@ unset NETBSD
 ## if [ "UNAME" = "NetBSD" ]; then NETBSD=true; POSIX=true; fi
 
 unset BSD
-if [ -n "$FREEBSD" -o -n "$OPENBSD" -o -n "$NETBSD" ]; then
+if [ -n "$FREEBSD" ] || [ -n "$OPENBSD" ] || [ -n "$NETBSD" ]; then
     BSD=true
 fi
 
@@ -75,9 +75,7 @@ MACROS="$MACROS PS__VERSION"
 PS__VERSION=546
 
 if [ -n "$WINDOWS" ]; then
-    RAWVER=`$RBIN --vanilla --slave -e "system('cmd /c ver')"`
-    VER=`echo $RAWVER | grep "\[Version.*\]" | sed "s/^.*\[Version\s*//" |
-                      sed "s/\].*$//"`
+    VER=`$RBIN --vanilla --slave -f inst/tools/winver.R`
     MAJOR=`echo $VER | cut -f1 -d.`
     MINOR=`echo $VER | cut -f2 -d.`
     WINVER=`$RBIN --vanilla --slave -e "cat(sprintf('0x0%s', $MAJOR*100 + $MINOR))"`

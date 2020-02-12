@@ -1,26 +1,38 @@
 
 # ps
 
-> List, Query, Manipulate System
-Processes
+> List, Query, Manipulate System Processes
 
 [![lifecycle](https://img.shields.io/badge/lifecycle-maturing-blue.svg)](https://www.tidyverse.org/lifecycle/#maturing)
-[![Travis build
-status](https://travis-ci.org/r-lib/ps.svg?branch=master)](https://travis-ci.org/r-lib/ps)
-[![AppVeyor build
-status](https://ci.appveyor.com/api/projects/status/github/r-lib/ps?branch=master&svg=true)](https://ci.appveyor.com/project/gaborcsardi/ps)
-[![CRAN
-status](https://www.r-pkg.org/badges/version/ps)](https://cran.r-project.org/package=ps)
-[![CRAN RStudio mirror
-downloads](https://cranlogs.r-pkg.org/badges/ps)](https://www.r-pkg.org/pkg/ps)
-[![Coverage
-status](https://codecov.io/gh/r-lib/ps/branch/master/graph/badge.svg)](https://codecov.io/github/r-lib/ps?branch=master)
+[![Travis build status](https://travis-ci.org/r-lib/ps.svg?branch=master)](https://travis-ci.org/r-lib/ps)
+[![AppVeyor build status](https://ci.appveyor.com/api/projects/status/github/r-lib/ps?branch=master&svg=true)](https://ci.appveyor.com/project/gaborcsardi/ps)
+[![CRAN status](https://www.r-pkg.org/badges/version/ps)](https://cran.r-project.org/package=ps)
+[![CRAN RStudio mirror downloads](https://cranlogs.r-pkg.org/badges/ps)](https://www.r-pkg.org/pkg/ps)
+[![Coverage status](https://codecov.io/gh/r-lib/ps/branch/master/graph/badge.svg)](https://codecov.io/github/r-lib/ps?branch=master)
 
-## Introduction
+ps implements an API to query and manipulate system processes. Most of its
+code is based on the [psutil](https://github.com/giampaolo/psutil) Python
+package.
 
-ps implement an API to query and manipulate system processes. Most of
-its code is based on the [psutil](https://github.com/giampaolo/psutil)
-Python package.
+  - [Installation](#installation)
+  - [Supported platforms](#supported-platforms)
+  - [Listing all processes](#listing-all-processes)
+  - [Process API](#process-api)
+      - [Query functions](#query-functions)
+      - [Process manipulation](#process-manipulation)
+  - [Finished and zombie processes](#finished-and-zombie-processes)
+  - [Pid reuse](#pid-reuse)
+  - [Recipes](#recipes)
+      - [Find process by name](#find-process-by-name)
+      - [Wait for a process to finish](#wait-for-a-process-to-finish)
+      - [Wait for several processes to
+        finish](#wait-for-several-processes-to-finish)
+      - [Kill process tree](#kill-process-tree)
+      - [Terminate children](#terminate-children)
+      - [Filtering and sorting
+        processes](#filtering-and-sorting-processes)
+  - [Contributions](#contributions)
+  - [License](#license)
 
 ## Installation
 
@@ -717,17 +729,17 @@ ps() %>%
 ```
 
     ## # A tibble: 3 x 3
-    ##     pid name                cpu_time
-    ##   <int> <chr>                  <dbl>
-    ## 1  3718 Google Chrome         15279.
-    ## 2   722 iTerm2                 7429.
-    ## 3 36368 com.docker.hyperkit    4689.
+    ##     pid name                       cpu_time
+    ##   <int> <chr>                         <dbl>
+    ## 1 40706 com.docker.hyperkit          31685.
+    ## 2 38474 Google Chrome Helper (GPU)   23568.
+    ## 3 38466 Google Chrome                20589.
 
 ## Contributions
 
 Please note that this project is released with a [Contributor Code of
-Conduct](.github/CODE_OF_CONDUCT.md). By participating in this project
-you agree to abide by its terms.
+Conduct](https://github.com/r-lib/ps/blob/master/.github/CODE_OF_CONDUCT.md).
+By participating in this project you agree to abide by its terms.
 
 ## License
 

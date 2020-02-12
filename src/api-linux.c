@@ -1,4 +1,8 @@
 
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE 1
+#endif
+
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -727,7 +731,7 @@ SEXP psll_cpu_times(SEXP p) {
   REAL(result)[1] = stat.stime * psll_linux_clock_period;
   REAL(result)[2] = stat.cutime * psll_linux_clock_period;
   REAL(result)[3] = stat.cstime * psll_linux_clock_period;
-  PROTECT(names = ps__build_string("user", "system", "childen_user",
+  PROTECT(names = ps__build_string("user", "system", "children_user",
 				   "children_system", NULL));
   setAttrib(result, R_NamesSymbol, names);
 

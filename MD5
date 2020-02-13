@@ -1,7 +1,7 @@
-ef5fc3ffe9d713a52e62ced9d9a521b5 *DESCRIPTION
-94619cda11226dcde8ce0a041fc99787 *LICENSE
+14c5457291899584668546edaec17281 *DESCRIPTION
+ed122a1c3e9892dd2b2d2e3518850898 *LICENSE
 cb5cd2ed8bacfa0cb4584b8f341cea7f *NAMESPACE
-f93995d0938c085dafa4a48b3e78ae84 *NEWS.md
+683880a4bea17fa8825e1cf7e898bc1f *NEWS.md
 e9d5da70cc329bca4418e19af321c9b8 *R/error.R
 22cd9e0029929362c7fc30c705dd795c *R/kill-tree.R
 113eee7fd5be6631af582a4b515af4ab *R/linux.R
@@ -73,7 +73,7 @@ f5bc9064a4b629c53014ac1e32d2cf08 *src/arch/windows/process_info.c
 4034d71409076ddf215011db0fd555c1 *src/arch/windows/process_info.h
 9de4569887008827a4ccafb2167f8454 *src/common.c
 e1046ca769d4da994b1a60825b7b1855 *src/common.h
-2da9da22c445bd18f8b4fbd910e40867 *src/dummy.c
+c463bef2f8b9b4716d35b529162d0426 *src/dummy.c
 d6b32a3299957efccddf2c37085cbecc *src/extra.c
 e6abc42b1887e887ae84f4d6525fea40 *src/init.c
 25293087d29ce032315b03ca28b91cf7 *src/install.libs.R

@@ -4,7 +4,7 @@
 \alias{ps_memory_info}
 \title{Memory usage information}
 \usage{
-ps_memory_info(p)
+ps_memory_info(p = ps_handle())
 }
 \arguments{
 \item{p}{Process handle.}
@@ -49,7 +49,7 @@ structure.
 Throws a \code{zombie_process()} error for zombie processes.
 }
 \examples{
-\dontshow{if (ps::ps_is_supported()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (ps::ps_is_supported() && ! ps:::is_cran_check()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 p <- ps_handle()
 p
 ps_memory_info(p)

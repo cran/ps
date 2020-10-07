@@ -4,7 +4,7 @@
 \alias{ps_connections}
 \title{List network connections of a process}
 \usage{
-ps_connections(p)
+ps_connections(p = ps_handle())
 }
 \arguments{
 \item{p}{Process handle.}
@@ -31,7 +31,7 @@ for UNIX sockets.
 For a zombie process it throws a \code{zombie_process} error.
 }
 \examples{
-\dontshow{if (ps::ps_is_supported()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (ps::ps_is_supported() && ! ps:::is_cran_check()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 p <- ps_handle()
 ps_connections(p)
 sc <- socketConnection("httpbin.org", port = 80)

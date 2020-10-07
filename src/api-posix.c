@@ -4,6 +4,11 @@
 #endif
 
 #include <errno.h>
+#include <sys/ioctl.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <sys/statvfs.h>
+#include <sys/resource.h>
 
 #include "ps-internal.h"
 
@@ -88,4 +93,97 @@ SEXP psll_interrupt(SEXP p, SEXP ctrlc, SEXP interrupt_path) {
   PROTECT(res = psll_send_signal(p, s));
   UNPROTECT(2);
   return res;
+}
+
+SEXP ps__tty_size() {
+  struct winsize w;
+  int err = ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+  if (err == -1) {
+    ps__set_error_from_errno();
+    ps__throw_error();
+  }
+
+  SEXP result = Rf_allocVector(INTSXP, 2);
+  INTEGER(result)[0] = w.ws_col;
+  INTEGER(result)[1] = w.ws_row;
+
+  return result;
+}
+
+SEXP ps__disk_usage(SEXP paths) {
+  struct statvfs stat;
+  int i, n = Rf_length(paths);
+  SEXP result = PROTECT(allocVector(VECSXP, n));
+
+  for (i = 0; i < n; i++) {
+    const char *cpath = CHAR(STRING_ELT(paths, i));
+    int ret = statvfs(cpath, &stat);
+    if (ret == -1) {
+      ps__set_error_from_errno();
+      ps__throw_error();
+    }
+    SET_VECTOR_ELT(
+      result, i,
+      ps__build_list("idddddd", (int) stat.f_frsize, (double) stat.f_files,
+                     (double) stat.f_favail, (double) stat.f_ffree,
+                     (double) stat.f_blocks, (double) stat.f_bavail,
+                     (double) stat.f_bfree));
+  }
+
+  UNPROTECT(1);
+  return result;
+}
+
+SEXP psll_get_nice(SEXP p) {
+  ps_handle_t *handle = R_ExternalPtrAddr(p);
+  pid_t pid;
+  int priority;
+  errno = 0;
+
+  if (!handle) error("Process pointer cleaned up already");
+
+  pid = handle->pid;
+
+#ifdef PS__MACOS
+  priority = getpriority(PRIO_PROCESS, (id_t)pid);
+#else
+  priority = getpriority(PRIO_PROCESS, pid);
+#endif
+
+  if (errno != 0) {
+    ps__check_for_zombie(handle, 1);
+    ps__set_error_from_errno();
+    ps__throw_error();
+  } else {
+    ps__check_for_zombie(handle, 0);
+  }
+
+  return ScalarInteger(priority);
+}
+
+SEXP psll_set_nice(SEXP p, SEXP value) {
+  ps_handle_t *handle = R_ExternalPtrAddr(p);
+  pid_t pid;
+  int priority = INTEGER(value)[0];
+  int retval;
+
+  if (!handle) error("Process pointer cleaned up already");
+
+  pid = handle->pid;
+
+#ifdef PSUTIL_OSX
+  retval = setpriority(PRIO_PROCESS, (id_t)pid, priority);
+#else
+  retval = setpriority(PRIO_PROCESS, pid, priority);
+#endif
+
+  if (retval == -1) {
+    ps__check_for_zombie(handle, 1);
+    ps__set_error_from_errno();
+    ps__throw_error();
+  } else {
+    ps__check_for_zombie(handle, 0);
+  }
+
+  return R_NilValue;
 }

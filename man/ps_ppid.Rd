@@ -5,9 +5,9 @@
 \alias{ps_parent}
 \title{Parent pid or parent process of a process}
 \usage{
-ps_ppid(p)
+ps_ppid(p = ps_handle())
 
-ps_parent(p)
+ps_parent(p = ps_handle())
 }
 \arguments{
 \item{p}{Process handle.}
@@ -28,7 +28,7 @@ On POSIX systems, if the parent process terminates, another process
 Both \code{ps_ppid()} and \code{ps_parent()} work for zombie processes.
 }
 \examples{
-\dontshow{if (ps::ps_is_supported()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (ps::ps_is_supported() && ! ps:::is_cran_check()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 p <- ps_handle()
 p
 ps_ppid(p)

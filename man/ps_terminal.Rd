@@ -4,7 +4,7 @@
 \alias{ps_terminal}
 \title{Terminal device of the process}
 \usage{
-ps_terminal(p)
+ps_terminal(p = ps_handle())
 }
 \arguments{
 \item{p}{Process handle.}
@@ -21,7 +21,7 @@ process has no terminal.
 Works for zombie processes.
 }
 \examples{
-\dontshow{if (ps::ps_is_supported()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (ps::ps_is_supported() && ! ps:::is_cran_check()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 p <- ps_handle()
 p
 ps_terminal(p)

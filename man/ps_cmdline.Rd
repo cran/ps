@@ -4,7 +4,7 @@
 \alias{ps_cmdline}
 \title{Command line of the process}
 \usage{
-ps_cmdline(p)
+ps_cmdline(p = ps_handle())
 }
 \arguments{
 \item{p}{Process handle.}
@@ -21,7 +21,7 @@ command line, and some programs actually do it.
 For a zombie process it throws a \code{zombie_process} error.
 }
 \examples{
-\dontshow{if (ps::ps_is_supported()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (ps::ps_is_supported() && ! ps:::is_cran_check()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 p <- ps_handle()
 p
 ps_name(p)

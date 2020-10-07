@@ -94,7 +94,8 @@ test_that("only kill", {
   on.exit(if (!is.null(out$p)) out$p$kill(), add = TRUE)
   with_reporter(
     CleanupReporter(testthat::SilentReporter)$new(
-      proc_unit = "test", proc_cleanup = TRUE, proc_fail = FALSE), {
+      proc_unit = "test", proc_cleanup = TRUE, proc_fail = FALSE,
+      conn_fail = FALSE), {
         test_that("foobar", {
           out$p <<- processx::process$new(px(), c("sleep", "5"))
           out$running <<- out$p$is_alive()
@@ -342,8 +343,17 @@ test_that("files already open are ignored", {
   expect_silent(close(conn))
 })
 
+# libcurl will open a pipe pair, when we call it the first time,
+# so we do a dummy download here, to avoid the false positive of
+# the cleanup reporter
+offline <- is_offline()
+if (!offline) {
+  conn <- curl::curl(httpbin_url(), open = "r")
+  close(conn)
+}
+
 test_that("Network cleanup, test, fail", {
-  skip_if_offline()
+  if (offline) skip("Offline")
   out <- list()
   on.exit({ try(close(out$conn), silent = TRUE); gc() }, add = TRUE)
   expect_failure(
@@ -366,7 +376,7 @@ test_that("Network cleanup, test, fail", {
 })
 
 test_that("Network cleanup, unit: testsuite", {
-  skip_if_offline()
+  if (offline) skip("Offline")
   out <- list()
   on.exit(try(close(out$conn), silent = TRUE), add = TRUE)
   expect_failure(
@@ -394,7 +404,7 @@ test_that("Network cleanup, unit: testsuite", {
 })
 
 test_that("Network connections already open are ignored", {
-  skip_if_offline()
+  if (offline) skip("Offline")
 
   conn <- curl::curl(httpbin_url(), open = "r")
   on.exit(try(close(conn), silent = TRUE), add = TRUE)

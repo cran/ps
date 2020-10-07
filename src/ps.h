@@ -40,6 +40,8 @@ SEXP psll_num_fds(SEXP p);
 SEXP psll_open_files(SEXP p);
 SEXP psll_interrupt(SEXP p, SEXP ctrlc, SEXP interrupt_path);
 SEXP psll_connections(SEXP p);
+SEXP psll_get_nice(SEXP p);
+SEXP psll_set_nice(SEXP p, SEXP value);
 
 /* System API */
 
@@ -49,6 +51,11 @@ SEXP ps__boot_time();
 SEXP ps__cpu_count_logical();
 SEXP ps__cpu_count_physical();
 SEXP ps__users();
+SEXP ps__tty_size();
+SEXP ps__disk_partitions(SEXP all);
+SEXP ps__disk_usage(SEXP paths);
+SEXP ps__system_memory();
+SEXP ps__system_swap();
 
 /* Generic utils used from R */
 

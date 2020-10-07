@@ -14,6 +14,9 @@
 #include <utmpx.h>
 #include <arpa/inet.h>
 
+#include <mach/mach.h>
+#include <mach/mach_vm.h>
+
 #include "ps-internal.h"
 #include "arch/macos/process_info.h"
 
@@ -45,12 +48,13 @@
   default:     error;					\
   }
 
-void ps__check_for_zombie(ps_handle_t *handle) {
+void ps__check_for_zombie(ps_handle_t *handle, int err) {
   struct kinfo_proc kp;
   int ret;
 
   if (handle->pid == 0) {
     ps__access_denied("");
+    err = 1;
 
   } else if (errno == 0 || errno == ESRCH) {
 
@@ -58,8 +62,10 @@ void ps__check_for_zombie(ps_handle_t *handle) {
     if ((ret == -1) ||
 	(PS__TV2DOUBLE(kp.kp_proc.p_starttime) != handle->create_time)) {
       ps__no_such_process(handle->pid, 0);
+      err = 1;
     } else if (kp.kp_proc.p_stat == SZOMB) {
       ps__zombie_process(handle->pid);
+      err = 1;
     } else {
       ps__access_denied("");
     }
@@ -68,7 +74,7 @@ void ps__check_for_zombie(ps_handle_t *handle) {
     ps__set_error_from_errno();
   }
 
-  ps__throw_error();
+  if (err) ps__throw_error();
 }
 
 void psll_finalizer(SEXP p) {
@@ -206,7 +212,7 @@ SEXP psll_exe(SEXP p) {
 
   ret = proc_pidpath(handle->pid, &buf, sizeof(buf));
 
-  if (ret == 0) ps__check_for_zombie(handle);
+  if (ret == 0) ps__check_for_zombie(handle, 1);
 
   PS__CHECK_HANDLE(handle);
 
@@ -221,7 +227,7 @@ SEXP psll_cmdline(SEXP p) {
 
   result = ps__get_cmdline(handle->pid);
 
-  if (isNull(result)) ps__check_for_zombie(handle);
+  if (isNull(result)) ps__check_for_zombie(handle, 1);
 
   PROTECT(result);
   PS__CHECK_HANDLE(handle);
@@ -280,7 +286,7 @@ SEXP psll_cwd(SEXP p) {
 
   if (ps__proc_pidinfo(handle->pid, PROC_PIDVNODEPATHINFO, 0, &pathinfo,
 		       sizeof(pathinfo)) <= 0) {
-    ps__check_for_zombie(handle);
+    ps__check_for_zombie(handle, 1);
   }
 
   PS__CHECK_HANDLE(handle);
@@ -360,7 +366,7 @@ SEXP psll_environ(SEXP p) {
 
   result = ps__get_environ(handle->pid);
 
-  if (isNull(result)) ps__check_for_zombie(handle);
+  if (isNull(result)) ps__check_for_zombie(handle, 1);
 
   PROTECT(result);
   PS__CHECK_HANDLE(handle);
@@ -378,7 +384,7 @@ SEXP psll_num_threads(SEXP p) {
 
   if (ps__proc_pidinfo(handle->pid, PROC_PIDTASKINFO, 0, &pti,
 		       sizeof(pti)) <= 0) {
-    ps__check_for_zombie(handle);
+    ps__check_for_zombie(handle, 1);
   }
 
   PS__CHECK_HANDLE(handle);
@@ -396,7 +402,7 @@ SEXP psll_cpu_times(SEXP p) {
 
   if (ps__proc_pidinfo(handle->pid, PROC_PIDTASKINFO, 0, &pti,
 		       sizeof(pti)) <= 0) {
-    ps__check_for_zombie(handle);
+    ps__check_for_zombie(handle, 1);
   }
 
   PS__CHECK_HANDLE(handle);
@@ -423,7 +429,7 @@ SEXP psll_memory_info(SEXP p) {
 
   if (ps__proc_pidinfo(handle->pid, PROC_PIDTASKINFO, 0, &pti,
 		       sizeof(pti)) <= 0) {
-    ps__check_for_zombie(handle);
+    ps__check_for_zombie(handle, 1);
   }
 
   PS__CHECK_HANDLE(handle);
@@ -466,17 +472,17 @@ SEXP ps__cpu_count_logical() {
 
   if (sysctlbyname("hw.logicalcpu", &num, &size, NULL, 2))
     return ScalarInteger(NA_INTEGER);
-  else 
+  else
     return ScalarInteger(num);
 }
 
 SEXP ps__cpu_count_physical() {
   int num = 0;
   size_t size = sizeof(int);
-  
+
   if (sysctlbyname("hw.physicalcpu", &num, &size, NULL, 0))
     return ScalarInteger(NA_INTEGER);
-  else 
+  else
     return ScalarInteger(num);
 }
 
@@ -569,7 +575,7 @@ SEXP psll_num_fds(SEXP p) {
   pid = handle->pid;
 
   pidinfo_result = proc_pidinfo(pid, PROC_PIDLISTFDS, 0, NULL, 0);
-  if (pidinfo_result <= 0) ps__check_for_zombie(handle);
+  if (pidinfo_result <= 0) ps__check_for_zombie(handle, 1);
 
   fds_pointer = malloc(pidinfo_result);
   if (fds_pointer == NULL) {
@@ -582,7 +588,7 @@ SEXP psll_num_fds(SEXP p) {
 
   if (pidinfo_result <= 0) {
     free(fds_pointer);
-    ps__check_for_zombie(handle);
+    ps__check_for_zombie(handle, 1);
   }
 
   num = (pidinfo_result / PROC_PIDLISTFD_SIZE);
@@ -669,7 +675,7 @@ SEXP psll_open_files(SEXP p) {
 
  error:
   if (fds_pointer != NULL) free(fds_pointer);
-  ps__check_for_zombie(handle);
+  ps__check_for_zombie(handle, 1);
   return R_NilValue;
 }
 
@@ -805,7 +811,7 @@ SEXP psll_connections(SEXP p) {
 
  error:
   if (fds_pointer) free(fds_pointer);
-  ps__check_for_zombie(handle);
+  ps__check_for_zombie(handle, 1);
   return R_NilValue;
 }
 
@@ -834,4 +840,190 @@ SEXP ps__users() {
   endutxent();
   UNPROTECT(1);
   return result;
+}
+
+SEXP ps__disk_partitions(SEXP all) {
+  int num;
+  int i;
+  int len;
+  uint64_t flags;
+  char opts[400];
+  struct statfs *fs = NULL;
+  SEXP result;
+
+  // get the number of mount points
+  num = getfsstat(NULL, 0, MNT_NOWAIT);
+  if (num == -1) {
+    ps__set_error_from_errno();
+    goto error;
+  }
+
+  len = sizeof(*fs) * num;
+  fs = malloc(len);
+  if (fs == NULL) {
+    ps__no_memory("");
+    goto error;
+  }
+
+  num = getfsstat(fs, len, MNT_NOWAIT);
+  if (num == -1) {
+    ps__set_error_from_errno();
+    goto error;
+  }
+
+  PROTECT(result = allocVector(VECSXP, num));
+
+  for (i = 0; i < num; i++) {
+    opts[0] = 0;
+    flags = fs[i].f_flags;
+
+    // see sys/mount.h
+    if (flags & MNT_RDONLY)
+      strlcat(opts, "ro", sizeof(opts));
+    else
+      strlcat(opts, "rw", sizeof(opts));
+    if (flags & MNT_SYNCHRONOUS)
+      strlcat(opts, ",sync", sizeof(opts));
+    if (flags & MNT_NOEXEC)
+      strlcat(opts, ",noexec", sizeof(opts));
+    if (flags & MNT_NOSUID)
+      strlcat(opts, ",nosuid", sizeof(opts));
+    if (flags & MNT_UNION)
+      strlcat(opts, ",union", sizeof(opts));
+    if (flags & MNT_ASYNC)
+      strlcat(opts, ",async", sizeof(opts));
+    if (flags & MNT_EXPORTED)
+      strlcat(opts, ",exported", sizeof(opts));
+    if (flags & MNT_QUARANTINE)
+      strlcat(opts, ",quarantine", sizeof(opts));
+    if (flags & MNT_LOCAL)
+      strlcat(opts, ",local", sizeof(opts));
+    if (flags & MNT_QUOTA)
+      strlcat(opts, ",quota", sizeof(opts));
+    if (flags & MNT_ROOTFS)
+      strlcat(opts, ",rootfs", sizeof(opts));
+    if (flags & MNT_DOVOLFS)
+      strlcat(opts, ",dovolfs", sizeof(opts));
+    if (flags & MNT_DONTBROWSE)
+      strlcat(opts, ",dontbrowse", sizeof(opts));
+    if (flags & MNT_IGNORE_OWNERSHIP)
+      strlcat(opts, ",ignore-ownership", sizeof(opts));
+    if (flags & MNT_AUTOMOUNTED)
+      strlcat(opts, ",automounted", sizeof(opts));
+    if (flags & MNT_JOURNALED)
+      strlcat(opts, ",journaled", sizeof(opts));
+    if (flags & MNT_NOUSERXATTR)
+      strlcat(opts, ",nouserxattr", sizeof(opts));
+    if (flags & MNT_DEFWRITE)
+      strlcat(opts, ",defwrite", sizeof(opts));
+    if (flags & MNT_MULTILABEL)
+      strlcat(opts, ",multilabel", sizeof(opts));
+    if (flags & MNT_NOATIME)
+      strlcat(opts, ",noatime", sizeof(opts));
+    if (flags & MNT_UPDATE)
+      strlcat(opts, ",update", sizeof(opts));
+    if (flags & MNT_RELOAD)
+      strlcat(opts, ",reload", sizeof(opts));
+    if (flags & MNT_FORCE)
+      strlcat(opts, ",force", sizeof(opts));
+    if (flags & MNT_CMDFLAGS)
+      strlcat(opts, ",cmdflags", sizeof(opts));
+
+    SET_VECTOR_ELT(
+      result, i,
+      ps__build_list("ssss", fs[i].f_mntfromname, fs[i].f_mntonname,
+                     fs[i].f_fstypename, opts));
+  }
+
+  free(fs);
+  UNPROTECT(1);
+  return result;
+
+error:
+  if (fs != NULL) free(fs);
+  ps__throw_error();
+  return R_NilValue;
+}
+
+int ps__sys_vminfo(vm_statistics_data_t *vmstat) {
+  kern_return_t ret;
+  mach_msg_type_number_t count = sizeof(*vmstat) / sizeof(integer_t);
+  mach_port_t mport = mach_host_self();
+
+  ret = host_statistics(mport, HOST_VM_INFO, (host_info_t)vmstat, &count);
+  if (ret != KERN_SUCCESS) {
+    ps__set_error(
+      "host_statistics(HOST_VM_INFO) syscall failed: %s",
+      mach_error_string(ret)
+    );
+    return 1;
+  }
+  mach_port_deallocate(mach_task_self(), mport);
+  return 0;
+}
+
+SEXP ps__system_memory() {
+  int mib[2];
+  uint64_t total;
+  size_t len = sizeof(total);
+  vm_statistics_data_t vm;
+  int pagesize = getpagesize();
+  // physical mem
+  mib[0] = CTL_HW;
+  mib[1] = HW_MEMSIZE;
+
+  // This is also available as sysctlbyname("hw.memsize").
+  if (sysctl(mib, 2, &total, &len, NULL, 0)) {
+    if (errno != 0) {
+      ps__set_error_from_errno();
+    } else {
+      ps__set_error("sysctl(HW_MEMSIZE) syscall failed");
+    }
+    ps__throw_error();
+  }
+
+  // vm
+  if (ps__sys_vminfo(&vm)) ps__throw_error();
+
+  return ps__build_named_list(
+    "dddddd",
+    "total",       (double) total,
+    "active",      (double) vm.active_count * pagesize,
+    "inactive",    (double) vm.inactive_count * pagesize,
+    "wired",       (double) vm.wire_count * pagesize,
+    "free",        (double) vm.free_count * pagesize,
+    "speculative", (double) vm.speculative_count * pagesize
+  );
+}
+
+SEXP ps__system_swap() {
+  int mib[2];
+  size_t size;
+  struct xsw_usage totals;
+  vm_statistics_data_t vm;
+  int pagesize = getpagesize();
+
+  mib[0] = CTL_VM;
+  mib[1] = VM_SWAPUSAGE;
+  size = sizeof(totals);
+  if (sysctl(mib, 2, &totals, &size, NULL, 0) == -1) {
+  if (errno != 0) {
+      ps__set_error_from_errno();
+    } else {
+      ps__set_error("sysctl(VM_SWAPUSAGE) syscall failed");
+    }
+    ps__throw_error();
+  }
+
+  // vm
+  if (ps__sys_vminfo(&vm)) ps__throw_error();
+
+  return ps__build_named_list(
+    "ddddd",
+    "total", (double) totals.xsu_total,
+    "used",  (double) totals.xsu_used,
+    "free",  (double) totals.xsu_avail,
+    "sin",   (double) vm.pageins * pagesize,
+    "sout",  (double) vm.pageouts * pagesize
+  );
 }

@@ -5,9 +5,9 @@
 \alias{ps_environ_raw}
 \title{Environment variables of a process}
 \usage{
-ps_environ(p)
+ps_environ(p = ps_handle())
 
-ps_environ_raw(p)
+ps_environ_raw(p = ps_handle())
 }
 \arguments{
 \item{p}{Process handle.}
@@ -33,7 +33,7 @@ enough.
 These functions throw a \code{zombie_process} error for zombie processes.
 }
 \examples{
-\dontshow{if (ps::ps_is_supported()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (ps::ps_is_supported() && ! ps:::is_cran_check()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 p <- ps_handle()
 p
 env <- ps_environ(p)

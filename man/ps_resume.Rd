@@ -4,7 +4,7 @@
 \alias{ps_resume}
 \title{Resume (continue) a stopped process}
 \usage{
-ps_resume(p)
+ps_resume(p = ps_handle())
 }
 \arguments{
 \item{p}{Process handle.}
@@ -15,7 +15,7 @@ whether PID has been reused. On Windows this has the effect of resuming
 all process threads.
 }
 \examples{
-\dontshow{if (ps::ps_is_supported() && ps::ps_os_type()["POSIX"]) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (ps::ps_is_supported() && ps::ps_os_type()["POSIX"] && ! ps:::is_cran_check()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 px <- processx::process$new("sleep", "10")
 p <- ps_handle(px$get_pid())
 p

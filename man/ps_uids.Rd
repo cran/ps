@@ -5,9 +5,9 @@
 \alias{ps_gids}
 \title{User ids and group ids of the process}
 \usage{
-ps_uids(p)
+ps_uids(p = ps_handle())
 
-ps_gids(p)
+ps_gids(p = ps_handle())
 }
 \arguments{
 \item{p}{Process handle.}
@@ -27,7 +27,7 @@ They are not implemented on Windows, they throw a \code{not_implemented}
 error.
 }
 \examples{
-\dontshow{if (ps::ps_is_supported() && ps::ps_os_type()["POSIX"]) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (ps::ps_is_supported() && ps::ps_os_type()["POSIX"] && ! ps:::is_cran_check()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 p <- ps_handle()
 p
 ps_uids(p)

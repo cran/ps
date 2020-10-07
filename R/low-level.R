@@ -10,7 +10,7 @@
 #'
 #' @family process handle functions
 #' @export
-#' @examplesIf ps::ps_is_supported()
+#' @examplesIf ps::ps_is_supported() && ! ps:::is_cran_check()
 #' p <- ps_handle()
 #' p
 
@@ -56,13 +56,13 @@ print.ps_handle <- function(x, ...)  {
 #'
 #' @family process handle functions
 #' @export
-#' @examplesIf ps::ps_is_supported()
+#' @examplesIf ps::ps_is_supported() && ! ps:::is_cran_check()
 #' p <- ps_handle()
 #' p
 #' ps_pid(p)
 #' ps_pid(p) == Sys.getpid()
 
-ps_pid <- function(p) {
+ps_pid <- function(p = ps_handle()) {
   assert_ps_handle(p)
   .Call(psll_pid, p)
 }
@@ -80,12 +80,12 @@ ps_pid <- function(p) {
 #'
 #' @family process handle functions
 #' @export
-#' @examplesIf ps::ps_is_supported()
+#' @examplesIf ps::ps_is_supported() && ! ps:::is_cran_check()
 #' p <- ps_handle()
 #' p
 #' ps_create_time(p)
 
-ps_create_time <- function(p) {
+ps_create_time <- function(p = ps_handle()) {
   assert_ps_handle(p)
   format_unix_time(.Call(psll_create_time, p))
 }
@@ -103,12 +103,12 @@ ps_create_time <- function(p) {
 #'
 #' @family process handle functions
 #' @export
-#' @examplesIf ps::ps_is_supported()
+#' @examplesIf ps::ps_is_supported() && ! ps:::is_cran_check()
 #' p <- ps_handle()
 #' p
 #' ps_is_running(p)
 
-ps_is_running <- function(p) {
+ps_is_running <- function(p = ps_handle()) {
   assert_ps_handle(p)
   .Call(psll_is_running, p)
 }
@@ -130,13 +130,13 @@ ps_is_running <- function(p) {
 #'
 #' @family process handle functions
 #' @export
-#' @examplesIf ps::ps_is_supported()
+#' @examplesIf ps::ps_is_supported() && ! ps:::is_cran_check()
 #' p <- ps_handle()
 #' p
 #' ps_ppid(p)
 #' ps_parent(p)
 
-ps_ppid <- function(p) {
+ps_ppid <- function(p = ps_handle()) {
   assert_ps_handle(p)
   .Call(psll_ppid, p)
 }
@@ -144,7 +144,7 @@ ps_ppid <- function(p) {
 #' @rdname  ps_ppid
 #' @export
 
-ps_parent <- function(p) {
+ps_parent <- function(p = ps_handle()) {
   assert_ps_handle(p)
   .Call(psll_parent, p)
 }
@@ -162,14 +162,14 @@ ps_parent <- function(p) {
 #'
 #' @family process handle functions
 #' @export
-#' @examplesIf ps::ps_is_supported()
+#' @examplesIf ps::ps_is_supported() && ! ps:::is_cran_check()
 #' p <- ps_handle()
 #' p
 #' ps_name(p)
 #' ps_exe(p)
 #' ps_cmdline(p)
 
-ps_name <- function(p) {
+ps_name <- function(p = ps_handle()) {
   assert_ps_handle(p)
   n <- .Call(psll_name, p)
   if (nchar(n) >= 15) {
@@ -201,14 +201,14 @@ ps_name <- function(p) {
 #'
 #' @family process handle functions
 #' @export
-#' @examplesIf ps::ps_is_supported()
+#' @examplesIf ps::ps_is_supported() && ! ps:::is_cran_check()
 #' p <- ps_handle()
 #' p
 #' ps_name(p)
 #' ps_exe(p)
 #' ps_cmdline(p)
 
-ps_exe <- function(p) {
+ps_exe <- function(p = ps_handle()) {
   assert_ps_handle(p)
   .Call(psll_exe, p)
 }
@@ -226,14 +226,14 @@ ps_exe <- function(p) {
 #'
 #' @family process handle functions
 #' @export
-#' @examplesIf ps::ps_is_supported()
+#' @examplesIf ps::ps_is_supported() && ! ps:::is_cran_check()
 #' p <- ps_handle()
 #' p
 #' ps_name(p)
 #' ps_exe(p)
 #' ps_cmdline(p)
 
-ps_cmdline <- function(p) {
+ps_cmdline <- function(p = ps_handle()) {
   assert_ps_handle(p)
   .Call(psll_cmdline, p)
 }
@@ -263,12 +263,12 @@ ps_cmdline <- function(p) {
 #'
 #' @family process handle functions
 #' @export
-#' @examplesIf ps::ps_is_supported()
+#' @examplesIf ps::ps_is_supported() && ! ps:::is_cran_check()
 #' p <- ps_handle()
 #' p
 #' ps_status(p)
 
-ps_status <- function(p) {
+ps_status <- function(p = ps_handle()) {
   assert_ps_handle(p)
   .Call(psll_status, p)
 }
@@ -289,12 +289,12 @@ ps_status <- function(p) {
 #'
 #' @family process handle functions
 #' @export
-#' @examplesIf ps::ps_is_supported()
+#' @examplesIf ps::ps_is_supported() && ! ps:::is_cran_check()
 #' p <- ps_handle()
 #' p
 #' ps_username(p)
 
-ps_username <- function(p) {
+ps_username <- function(p = ps_handle()) {
   assert_ps_handle(p)
   .Call(psll_username, p)
 }
@@ -308,12 +308,12 @@ ps_username <- function(p) {
 #'
 #' @family process handle functions
 #' @export
-#' @examplesIf ps::ps_is_supported()
+#' @examplesIf ps::ps_is_supported() && ! ps:::is_cran_check()
 #' p <- ps_handle()
 #' p
 #' ps_cwd(p)
 
-ps_cwd <- function(p) {
+ps_cwd <- function(p = ps_handle()) {
   assert_ps_handle(p)
   .Call(psll_cwd, p)
 }
@@ -336,13 +336,13 @@ ps_cwd <- function(p) {
 #'   platforms.
 #' @family process handle functions
 #' @export
-#' @examplesIf ps::ps_is_supported() && ps::ps_os_type()["POSIX"]
+#' @examplesIf ps::ps_is_supported() && ps::ps_os_type()["POSIX"] && ! ps:::is_cran_check()
 #' p <- ps_handle()
 #' p
 #' ps_uids(p)
 #' ps_gids(p)
 
-ps_uids <- function(p) {
+ps_uids <- function(p = ps_handle()) {
   assert_ps_handle(p)
   .Call(psll_uids, p)
 }
@@ -350,7 +350,7 @@ ps_uids <- function(p) {
 #' @rdname ps_uids
 #' @export
 
-ps_gids <- function(p) {
+ps_gids <- function(p = ps_handle()) {
   assert_ps_handle(p)
   .Call(psll_gids, p)
 }
@@ -368,12 +368,12 @@ ps_gids <- function(p) {
 #'
 #' @family process handle functions
 #' @export
-#' @examplesIf ps::ps_is_supported()
+#' @examplesIf ps::ps_is_supported() && ! ps:::is_cran_check()
 #' p <- ps_handle()
 #' p
 #' ps_terminal(p)
 
-ps_terminal <- function(p) {
+ps_terminal <- function(p = ps_handle()) {
   assert_ps_handle(p)
   ttynr <- .Call(psll_terminal, p)
   if (is.na(ttynr)) {
@@ -406,13 +406,13 @@ ps_terminal <- function(p) {
 #'
 #' @family process handle functions
 #' @export
-#' @examplesIf ps::ps_is_supported()
+#' @examplesIf ps::ps_is_supported() && ! ps:::is_cran_check()
 #' p <- ps_handle()
 #' p
 #' env <- ps_environ(p)
 #' env[["R_HOME"]]
 
-ps_environ <- function(p) {
+ps_environ <- function(p = ps_handle()) {
   assert_ps_handle(p)
   parse_envs(.Call(psll_environ, p))
 }
@@ -420,7 +420,7 @@ ps_environ <- function(p) {
 #' @rdname ps_environ
 #' @export
 
-ps_environ_raw <- function(p) {
+ps_environ_raw <- function(p = ps_handle()) {
   assert_ps_handle(p)
   .Call(psll_environ, p)
 }
@@ -434,12 +434,12 @@ ps_environ_raw <- function(p) {
 #'
 #' @family process handle functions
 #' @export
-#' @examplesIf ps::ps_is_supported()
+#' @examplesIf ps::ps_is_supported() && ! ps:::is_cran_check()
 #' p <- ps_handle()
 #' p
 #' ps_num_threads(p)
 
-ps_num_threads <- function(p) {
+ps_num_threads <- function(p = ps_handle()) {
   assert_ps_handle(p)
   .Call(psll_num_threads, p)
 }
@@ -465,13 +465,13 @@ ps_num_threads <- function(p) {
 #'
 #' @family process handle functions
 #' @export
-#' @examplesIf ps::ps_is_supported()
+#' @examplesIf ps::ps_is_supported() && ! ps:::is_cran_check()
 #' p <- ps_handle()
 #' p
 #' ps_cpu_times(p)
 #' proc.time()
 
-ps_cpu_times <- function(p) {
+ps_cpu_times <- function(p = ps_handle()) {
   assert_ps_handle(p)
   .Call(psll_cpu_times, p)
 }
@@ -513,12 +513,12 @@ ps_cpu_times <- function(p) {
 #'
 #' @family process handle functions
 #' @export
-#' @examplesIf ps::ps_is_supported()
+#' @examplesIf ps::ps_is_supported() && ! ps:::is_cran_check()
 #' p <- ps_handle()
 #' p
 #' ps_memory_info(p)
 
-ps_memory_info <- function(p) {
+ps_memory_info <- function(p = ps_handle()) {
   assert_ps_handle(p)
   .Call(psll_memory_info, p)
 }
@@ -536,7 +536,7 @@ ps_memory_info <- function(p) {
 #'
 #' @family process handle functions
 #' @export
-#' @examplesIf ps::ps_is_supported() && ps::ps_os_type()["POSIX"]
+#' @examplesIf ps::ps_is_supported() && ps::ps_os_type()["POSIX"] && ! ps:::is_cran_check()
 #' px <- processx::process$new("sleep", "10")
 #' p <- ps_handle(px$get_pid())
 #' p
@@ -545,7 +545,7 @@ ps_memory_info <- function(p) {
 #' ps_is_running(p)
 #' px$get_exit_status()
 
-ps_send_signal <- function(p, sig) {
+ps_send_signal <- function(p = ps_handle(), sig) {
   assert_ps_handle(p)
   assert_signal(sig)
   .Call(psll_send_signal, p, sig)
@@ -561,7 +561,7 @@ ps_send_signal <- function(p, sig) {
 #'
 #' @family process handle functions
 #' @export
-#' @examplesIf ps::ps_is_supported() && ps::ps_os_type()["POSIX"]
+#' @examplesIf ps::ps_is_supported() && ps::ps_os_type()["POSIX"] && ! ps:::is_cran_check()
 #' px <- processx::process$new("sleep", "10")
 #' p <- ps_handle(px$get_pid())
 #' p
@@ -571,7 +571,7 @@ ps_send_signal <- function(p, sig) {
 #' ps_status(p)
 #' ps_kill(p)
 
-ps_suspend <- function(p) {
+ps_suspend <- function(p = ps_handle()) {
   assert_ps_handle(p)
   .Call(psll_suspend, p)
 }
@@ -586,7 +586,7 @@ ps_suspend <- function(p) {
 #'
 #' @family process handle functions
 #' @export
-#' @examplesIf ps::ps_is_supported() && ps::ps_os_type()["POSIX"]
+#' @examplesIf ps::ps_is_supported() && ps::ps_os_type()["POSIX"] && ! ps:::is_cran_check()
 #' px <- processx::process$new("sleep", "10")
 #' p <- ps_handle(px$get_pid())
 #' p
@@ -596,7 +596,7 @@ ps_suspend <- function(p) {
 #' ps_status(p)
 #' ps_kill(p)
 
-ps_resume <- function(p) {
+ps_resume <- function(p = ps_handle()) {
   assert_ps_handle(p)
   .Call(psll_resume, p)
 }
@@ -611,7 +611,7 @@ ps_resume <- function(p) {
 #'
 #' @family process handle functions
 #' @export
-#' @examplesIf ps::ps_is_supported() && ps::ps_os_type()["POSIX"]
+#' @examplesIf ps::ps_is_supported() && ps::ps_os_type()["POSIX"] && ! ps:::is_cran_check()
 #' px <- processx::process$new("sleep", "10")
 #' p <- ps_handle(px$get_pid())
 #' p
@@ -620,7 +620,7 @@ ps_resume <- function(p) {
 #' ps_is_running(p)
 #' px$get_exit_status()
 
-ps_terminate <- function(p) {
+ps_terminate <- function(p = ps_handle()) {
   assert_ps_handle(p)
   .Call(psll_terminate, p)
 }
@@ -634,7 +634,7 @@ ps_terminate <- function(p) {
 #'
 #' @family process handle functions
 #' @export
-#' @examplesIf ps::ps_is_supported() && ps::ps_os_type()["POSIX"]
+#' @examplesIf ps::ps_is_supported() && ps::ps_os_type()["POSIX"] && ! ps:::is_cran_check()
 #' px <- processx::process$new("sleep", "10")
 #' p <- ps_handle(px$get_pid())
 #' p
@@ -643,7 +643,7 @@ ps_terminate <- function(p) {
 #' ps_is_running(p)
 #' px$get_exit_status()
 
-ps_kill <- function(p) {
+ps_kill <- function(p = ps_handle()) {
   assert_ps_handle(p)
   .Call(psll_kill, p)
 }
@@ -659,11 +659,11 @@ ps_kill <- function(p) {
 #' @family process handle functions
 #' @export
 #' @importFrom utils head tail
-#' @examplesIf ps::ps_is_supported()
+#' @examplesIf ps::ps_is_supported() && ! ps:::is_cran_check()
 #' p <- ps_parent(ps_handle())
 #' ps_children(p)
 
-ps_children <- function(p, recursive = FALSE) {
+ps_children <- function(p = ps_handle(), recursive = FALSE) {
   assert_ps_handle(p)
   assert_flag(recursive)
 
@@ -743,7 +743,7 @@ ps_ppid_map <- function() {
 #'
 #' @family process handle functions
 #' @export
-#' @examplesIf ps::ps_is_supported()
+#' @examplesIf ps::ps_is_supported() && ! ps:::is_cran_check()
 #' p <- ps_handle()
 #' ps_num_fds(p)
 #' f <- file(tmp <- tempfile(), "w")
@@ -752,7 +752,7 @@ ps_ppid_map <- function() {
 #' unlink(tmp)
 #' ps_num_fds(p)
 
-ps_num_fds <- function(p) {
+ps_num_fds <- function(p = ps_handle()) {
   assert_ps_handle(p)
   .Call(psll_num_fds, p)
 }
@@ -773,7 +773,7 @@ ps_num_fds <- function(p) {
 #'
 #' @family process handle functions
 #' @export
-#' @examplesIf ps::ps_is_supported()
+#' @examplesIf ps::ps_is_supported() && ! ps:::is_cran_check()
 #' p <- ps_handle()
 #' ps_open_files(p)
 #' f <- file(tmp <- tempfile(), "w")
@@ -782,7 +782,7 @@ ps_num_fds <- function(p) {
 #' unlink(tmp)
 #' ps_open_files(p)
 
-ps_open_files <- function(p) {
+ps_open_files <- function(p = ps_handle()) {
   assert_ps_handle(p)
 
   l <- not_null(.Call(psll_open_files, p))
@@ -819,7 +819,7 @@ ps_open_files <- function(p) {
 #'
 #' @family process handle functions
 #' @export
-#' @examplesIf ps::ps_is_supported()
+#' @examplesIf ps::ps_is_supported() && ! ps:::is_cran_check()
 #' p <- ps_handle()
 #' ps_connections(p)
 #' sc <- socketConnection("httpbin.org", port = 80)
@@ -827,7 +827,7 @@ ps_open_files <- function(p) {
 #' close(sc)
 #' ps_connections(p)
 
-ps_connections <- function(p) {
+ps_connections <- function(p = ps_handle()) {
   assert_ps_handle(p)
   if (ps_os_type()[["LINUX"]]) return(psl_connections(p))
 
@@ -869,7 +869,7 @@ ps_connections <- function(p) {
 #' @family process handle functions
 #' @export
 
-ps_interrupt  <- function(p, ctrl_c = TRUE) {
+ps_interrupt  <- function(p = ps_handle(), ctrl_c = TRUE) {
   assert_ps_handle(p)
   assert_flag(ctrl_c)
   if (ps_os_type()[["WINDOWS"]]) {
@@ -878,4 +878,75 @@ ps_interrupt  <- function(p, ctrl_c = TRUE) {
   } else {
     .Call(psll_interrupt, p, ctrl_c, NULL)
   }
+}
+
+#' @return `ps_windows_nice_values()` return a character vector of possible
+#' priority values on Windows.
+#' @export
+#' @rdname ps_get_nice
+
+ps_windows_nice_values <- function() {
+ c("realtime",
+   "high",
+   "above_normal",
+   "normal",
+   "idle",
+   "below_normal")
+}
+
+#' Get or set the priority of a process
+#'
+#' `ps_get_nice()` returns the current priority, `ps_set_nice()` sets a
+#' new priority, `ps_windows_nice_values()` list the possible priority
+#' values on Windows.
+#'
+#' Priority values are different on Windows and Unix.
+#'
+#' On Unix, priority is an integer, which is maximum 20. 20 is the lowest
+#' priority.
+#'
+#' ## Rules:
+#' * On Windows you can only set the priority of the processes the current
+#'   user has `PROCESS_SET_INFORMATION` access rights to. This typically
+#'   means your own processes.
+#' * On Unix you can only set the priority of the your own processes.
+#'   The superuser can set the priority of any process.
+#' * On Unix you cannot set a higher priority, unless you are the superuser.
+#'   (I.e. you cannot set a lower number.)
+#' * On Unix the default priority of a process is zero.
+#'
+#' @param p Process handle.
+#' @return `ps_get_nice()` returns a string from
+#' `ps_windows_nice_values()` on Windows. On Unix it returns an integer
+#' smaller than or equal to 20.
+#'
+#' @export
+
+ps_get_nice <- function(p = ps_handle()) {
+  assert_ps_handle(p)
+  code <- .Call(psll_get_nice, p)
+  if (ps_os_type()[["WINDOWS"]]) {
+    ps_windows_nice_values()[code]
+  } else {
+    code
+  }
+}
+
+#' @param value On Windows it must be a string, one of the values of
+#' `ps_windows_nice_values()`. On Unix it is a priority value that is
+#' smaller than or equal to 20.
+#' @return `ps_set_nice()` return `NULL` invisibly.
+#'
+#' @export
+#' @rdname ps_get_nice
+
+ps_set_nice <- function(p = ps_handle(), value) {
+  assert_ps_handle(p)
+  assert_nice_value(value)
+  if (ps_os_type()[["POSIX"]]) {
+    value <- as.integer(value)
+  } else {
+    value <- match(value, ps_windows_nice_values())
+  }
+  invisible(.Call(psll_set_nice, p, value))
 }

@@ -4,7 +4,7 @@
 \alias{ps_num_fds}
 \title{Number of open file descriptors}
 \usage{
-ps_num_fds(p)
+ps_num_fds(p = ps_handle())
 }
 \arguments{
 \item{p}{Process handle.}
@@ -21,7 +21,7 @@ main R thread.
 For a zombie process it throws a \code{zombie_process} error.
 }
 \examples{
-\dontshow{if (ps::ps_is_supported()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (ps::ps_is_supported() && ! ps:::is_cran_check()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 p <- ps_handle()
 ps_num_fds(p)
 f <- file(tmp <- tempfile(), "w")

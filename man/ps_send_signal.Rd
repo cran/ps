@@ -4,7 +4,7 @@
 \alias{ps_send_signal}
 \title{Send signal to a process}
 \usage{
-ps_send_signal(p, sig)
+ps_send_signal(p = ps_handle(), sig)
 }
 \arguments{
 \item{p}{Process handle.}
@@ -20,7 +20,7 @@ It checks if the process is still running, before sending the signal,
 to avoid signalling the wrong process, because of pid reuse.
 }
 \examples{
-\dontshow{if (ps::ps_is_supported() && ps::ps_os_type()["POSIX"]) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (ps::ps_is_supported() && ps::ps_os_type()["POSIX"] && ! ps:::is_cran_check()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 px <- processx::process$new("sleep", "10")
 p <- ps_handle(px$get_pid())
 p

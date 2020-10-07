@@ -4,7 +4,7 @@
 \alias{ps_terminate}
 \title{Terminate a Unix process}
 \usage{
-ps_terminate(p)
+ps_terminate(p = ps_handle())
 }
 \arguments{
 \item{p}{Process handle.}
@@ -16,7 +16,7 @@ Send a \code{SIGTERM} signal to the process. Not implemented on Windows.
 Checks if the process is still running, to work around pid reuse.
 }
 \examples{
-\dontshow{if (ps::ps_is_supported() && ps::ps_os_type()["POSIX"]) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (ps::ps_is_supported() && ps::ps_os_type()["POSIX"] && ! ps:::is_cran_check()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 px <- processx::process$new("sleep", "10")
 p <- ps_handle(px$get_pid())
 p

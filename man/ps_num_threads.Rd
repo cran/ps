@@ -4,7 +4,7 @@
 \alias{ps_num_threads}
 \title{Number of threads}
 \usage{
-ps_num_threads(p)
+ps_num_threads(p = ps_handle())
 }
 \arguments{
 \item{p}{Process handle.}
@@ -16,7 +16,7 @@ Integer scalar.
 Throws a \code{zombie_process()} error for zombie processes.
 }
 \examples{
-\dontshow{if (ps::ps_is_supported()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (ps::ps_is_supported() && ! ps:::is_cran_check()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 p <- ps_handle()
 p
 ps_num_threads(p)

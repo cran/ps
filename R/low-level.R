@@ -713,6 +713,59 @@ ps_children <- function(p = ps_handle(), recursive = FALSE) {
   ret
 }
 
+#' Query the ancestry of a process
+#'
+#' Query the parent processes recursively, up to the first process.
+#' (On some platforms, like Windows, the process tree is not a tree
+#' and may contain loops, in which case `ps_descent()` only goes up
+#' until the first repetition.)
+#'
+#' @param p Process handle.
+#' @return A list of process handles, starting with `p`, each one
+#' is the parent process of the previous one.
+#'
+#' @family process handle functions
+#' @export
+#' @examplesIf ps::ps_is_supported() && ! ps:::is_cran_check()
+#' ps_descent()
+
+ps_descent <- function(p = ps_handle()) {
+  assert_ps_handle(p)
+  windows <- ps_os_type()[["WINDOWS"]]
+
+  branch <- list()
+  branch_pids <- integer()
+  current <- p
+  current_pid <- ps_pid(p)
+  if (windows) current_time <- ps_create_time(p)
+
+  while (TRUE) {
+    branch <- c(branch, list(current))
+    branch_pids <- c(branch_pids, current_pid)
+    parent <- fallback(ps_parent(current), NULL)
+
+    # Might fail on Windows, if the process does not exist
+    if (is.null(parent)) break;
+
+    # If the parent pid is the same, we stop.
+    # Also, Windows might have loops
+    parent_pid <- ps_pid(parent)
+    if (parent_pid %in% branch_pids) break;
+
+    # Need to check for pid reuse on Windows
+    if (windows) {
+      parent_time <- ps_create_time(parent)
+      if (current_time <= parent_time) break
+      current_time <- parent_time
+    }
+
+    current <- parent
+    current_pid <- parent_pid
+  }
+
+  branch
+}
+
 ps_ppid_map <- function() {
   pids <- ps_pids()
 
@@ -949,4 +1002,37 @@ ps_set_nice <- function(p = ps_handle(), value) {
     value <- match(value, ps_windows_nice_values())
   }
   invisible(.Call(psll_set_nice, p, value))
+}
+
+#' List the dynamically loaded libraries of a process
+#'
+#' Note: this function currently only works on Windows.
+#' @param p Process handle.
+#' @return Data frame with one column currently: `path`, the
+#' absolute path to the loaded module or shared library. On Windows
+#' the list includes the executable file itself.
+#'
+#' @export
+#' @family process handle functions
+#' @family shared library tools
+#' @examplesIf ps::ps_is_supported() && ! ps:::is_cran_check() && ps::ps_os_type()[["WINDOWS"]]
+#' # The loaded DLLs of the current process
+#' ps_shared_libs()
+
+ps_shared_libs <- function(p = ps_handle()) {
+  assert_ps_handle(p)
+  if (!ps_os_type()[["WINDOWS"]]) {
+    stop("`ps_shared_libs()` is currently only supported on Windows")
+  }
+
+  l <- .Call(psll_dlls, p)
+
+  d <- data.frame(
+    stringsAsFactors = FALSE,
+    path = map_chr(l, "[[", 1)
+  )
+
+  requireNamespace("tibble", quietly = TRUE)
+  class(d) <- unique(c("tbl_df", "tbl", class(d)))
+  d
 }

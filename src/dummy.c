@@ -20,6 +20,17 @@ SEXP ps__dummy(const char *what) {
 #ifndef PS__MACOS
 #ifndef PS__WINDOWS
 SEXP ps__pids()          { return ps__dummy("ps_pids"); }
+SEXP psll_memory_uss(SEXP p) { return ps__dummy("psll_memory_uss"); }
+#endif
+#endif
+#endif
+
+/* Not implemented on macOS */
+#ifdef  PS__MACOS
+#ifndef PS__LINUX
+#ifndef PS__WINDOWS
+SEXP psll_get_cpu_aff(SEXP p) { return ps__dummy("psll_get_cpu_aff"); }
+SEXP psll_set_cpu_aff(SEXP p) { return ps__dummy("psll_set_cpu_aff"); }
 #endif
 #endif
 #endif
@@ -42,9 +53,11 @@ SEXP psll_dlls(SEXP x) { return ps__dummy("psll_dlls"); }
 #endif
 #endif
 
+/* Only implemented on linux */
 #ifndef PS__LINUX
 #if defined(PS__WINDOWS) || defined(PS__MACOS)
 SEXP ps__inet_ntop(SEXP x, SEXP y) { return ps__dummy("ps__inet_ntop"); }
+SEXP ps__memory_maps(SEXP p) { return ps__dummy("ps__memory_maps"); }
 #endif
 #endif
 

@@ -478,35 +478,55 @@ ps_cpu_times <- function(p = ps_handle()) {
 
 #' Memory usage information
 #'
-#' A list with information about memory usage. Portable fields:
+#' @details
+#'
+#' `ps_memory_info()` returns information about memory usage.
+#'
+#' It returns a named list. Portable fields:
 #' * `rss`: "Resident Set Size", this is the non-swapped physical memory a
-#'   process has used. On UNIX it matches "top"‘s 'RES' column (see doc). On
+#'   process has used (bytes). On UNIX it matches "top"‘s 'RES' column (see doc). On
 #'   Windows this is an alias for `wset` field and it matches "Memory"
 #'   column of `taskmgr.exe`.
 #' * `vmem`: "Virtual Memory Size", this is the total amount of virtual
-#'   memory used by the process. On UNIX it matches "top"‘s 'VIRT' column
+#'   memory used by the process (bytes). On UNIX it matches "top"‘s 'VIRT' column
 #'   (see doc). On Windows this is an alias for the `pagefile` field and
 #'   it matches the "Working set (memory)" column of `taskmgr.exe`.
 #'
 #' Non-portable fields:
 #' * `shared`: (Linux) memory that could be potentially shared with other
-#'   processes. This matches "top"‘s 'SHR' column (see doc).
+#'   processes (bytes). This matches "top"‘s 'SHR' column (see doc).
 #' * `text`: (Linux): aka 'TRS' (text resident set) the amount of memory
-#'   devoted to executable code. This matches "top"‘s 'CODE' column (see
+#'   devoted to executable code (bytes). This matches "top"‘s 'CODE' column (see
 #'   doc).
 #' * `data`: (Linux): aka 'DRS' (data resident set) the amount of physical
-#'   memory devoted to other than executable code. It matches "top"‘s
+#'   memory devoted to other than executable code (bytes). It matches "top"‘s
 #'   'DATA' column (see doc).
-#' * `lib`: (Linux): the memory used by shared libraries.
-#' * `dirty`: (Linux): the number of dirty pages.
+#' * `lib`: (Linux): the memory used by shared libraries (bytes).
+#' * `dirty`: (Linux): the amount of memory in dirty pages (bytes).
 #' * `pfaults`: (macOS): number of page faults.
 #' * `pageins`: (macOS): number of actual pageins.
 #'
-#' For on explanation of Windows fields see the
+#' For the explanation of Windows fields see the
 #' [PROCESS_MEMORY_COUNTERS_EX](https://docs.microsoft.com/en-us/windows/win32/api/psapi/ns-psapi-process_memory_counters_ex)
 #' structure.
 #'
-#' Throws a `zombie_process()` error for zombie processes.
+#' `ps_memory_full_info()` returns all fields as `ps_memory_info()`, plus
+#' additional information, but typically takes slightly longer to run, and
+#' might not have access to some processes that `ps_memory_info()` can
+#' query:
+#'
+#' * `uss`: Unique Set Size, this is the memory which is unique to a
+#'   process and which would be freed if the process was terminated right
+#'   now.
+#' * `pss` (Linux only): Proportional Set Size, is the amount of memory
+#'   shared with other processes, accounted in a way that the amount is
+#'   divided evenly between the processes that share it. I.e. if a process
+#'   has 10 MBs all to itself and 10 MBs shared with another process its
+#'   PSS will be 15 MBs.
+#' * `swap` (Linux only): amount of memory that has been swapped out to
+#'   disk.
+#'
+#' They both throw a `zombie_process()` error for zombie processes.
 #'
 #' @param p Process handle.
 #' @return Named real vector.
@@ -517,10 +537,47 @@ ps_cpu_times <- function(p = ps_handle()) {
 #' p <- ps_handle()
 #' p
 #' ps_memory_info(p)
+#' ps_memory_full_info(p)
 
 ps_memory_info <- function(p = ps_handle()) {
   assert_ps_handle(p)
   .Call(psll_memory_info, p)
+}
+
+#' @export
+#' @rdname ps_memory_info
+
+ps_memory_full_info <- function(p = ps_handle()) {
+  assert_ps_handle(p)
+  type <- ps_os_type()
+  if (type[["LINUX"]]) {
+    match <- function(re) {
+      mt <- gregexpr(re, smaps, perl = TRUE)[[1]]
+      st <- substring(
+        smaps,
+        attr(mt, "capture.start"),
+        attr(mt, "capture.start") + attr(mt, "capture.length") - 1
+      )
+      sum(as.integer(st), na.rm = TRUE) * 1024
+    }
+
+    info <- ps_memory_info(p)
+    smaps <- .Call(ps__memory_maps, p)
+    info[["uss"]] <- match("\nPrivate.*:\\s+(\\d+)")
+    info[["pss"]] <- match("\nPss:\\s+(\\d+)")
+    info[["swap"]] <- match("\nSwap:\\s+(\\d+)")
+    info
+
+  } else if (type[["MACOS"]]) {
+    info <- ps_memory_info(p)
+    info[["uss"]] <- .Call(psll_memory_uss, p)
+    info
+
+  } else if (type[["WINDOWS"]]) {
+    info <- ps_memory_info(p)
+    info[["uss"]] <- .Call(psll_memory_uss, p)
+    info
+  }
 }
 
 #' Send signal to a process
@@ -1035,4 +1092,67 @@ ps_shared_libs <- function(p = ps_handle()) {
   requireNamespace("tibble", quietly = TRUE)
   class(d) <- unique(c("tbl_df", "tbl", class(d)))
   d
+}
+
+#' Query or set CPU affinity
+#'
+#' `ps_get_cpu_affinity()` queries the
+#' [CPU affinity](https://www.linuxjournal.com/article/6799?page=0,0) of
+#' a process. `ps_set_cpu_affinity()` sets the CPU affinity of a process.
+#'
+#' CPU affinity consists in telling the OS to run a process on a limited
+#' set of CPUs only (on Linux cmdline, the `taskset` command is typically
+#' used).
+#'
+#' These functions are only supported on Linux and Windows. They error on macOS.
+#'
+#' @param p Process handle.
+#' @param affinity Integer vector of CPU numbers to restrict a process to.
+#' CPU numbers start with zero, and they have to be smaller than the
+#' number of (logical) CPUs, see [ps_cpu_count()].
+#'
+#' @return `ps_get_cpu_affinity()` returns an integer vector of CPU
+#' numbers, starting with zero.
+#'
+#' `ps_set_cpu_affinity()` returns `NULL`, invisibly.
+#'
+#' @export
+#' @examplesIf ps::ps_is_supported() && ! ps:::is_cran_check() && ! ps::ps_os_type()[["MACOS"]]
+#' # current
+#' orig <- ps_get_cpu_affinity()
+#' orig
+#'
+#' # restrict
+#' ps_set_cpu_affinity(affinity = 0:0)
+#' ps_get_cpu_affinity()
+#'
+#' # restore
+#' ps_set_cpu_affinity(affinity = orig)
+#' ps_get_cpu_affinity()
+
+ps_get_cpu_affinity <- function(p = ps_handle()) {
+  assert_ps_handle(p)
+  type <- ps_os_type()
+  if (!type[["LINUX"]] && !type[["WINDOWS"]]) {
+    stop("`ps_cpu_affinity()` is only supported on Windows and Linux")
+  }
+
+  .Call(psll_get_cpu_aff, p)
+}
+
+#' @export
+#' @rdname ps_get_cpu_affinity
+
+ps_set_cpu_affinity <- function(p = ps_handle(), affinity) {
+  assert_ps_handle(p)
+  type <- ps_os_type()
+  if (!type[["LINUX"]] && !type[["WINDOWS"]]) {
+    stop("`ps_cpu_affinity()` is only supported on Windows and Linux")
+  }
+
+  # check affinity values
+  cnt <- ps_cpu_count()
+  stopifnot(is.integer(affinity), all(affinity < cnt))
+
+  invisible(.Call(psll_set_cpu_aff, p, affinity))
 }

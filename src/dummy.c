@@ -69,14 +69,14 @@ SEXP ps__pids() { return ps__dummy("ps_pids"); }
 SEXP ps__boot_time() { return ps__dummy("ps_boot_time"); }
 SEXP ps__cpu_count_logical()  { return ps__dummy("ps_cpu_count"); }
 SEXP ps__cpu_count_physical() { return ps__dummy("ps_cpu_count"); }
-SEXP ps__users() { ps__dummy("ps_users"); }
+SEXP ps__users() { return ps__dummy("ps_users"); }
 SEXP ps__loadavg(SEXP x) { return ps__dummy("ps_loadavg"); }
-SEXP ps__tty_size() { ps__dummy("ps_tty_size"); }
-SEXP ps__disk_partitions(SEXP x) { ps__dummy("ps_disk_partitions"); }
-SEXP ps__disk_usage() { ps__dummy("ps_disk_usage"); }
+SEXP ps__tty_size() { return ps__dummy("ps_tty_size"); }
+SEXP ps__disk_partitions(SEXP x) { return ps__dummy("ps_disk_partitions"); }
+SEXP ps__disk_usage() { return ps__dummy("ps_disk_usage"); }
 SEXP ps__system_cpu_times() { return ps__dummy("ps_system_cpu_times"); }
-SEXP ps__system_memory() { ps__dummy("ps_system_memory"); }
-SEXP ps__system_swap() { ps__dummy("ps_system_swap"); }
+SEXP ps__system_memory() { return ps__dummy("ps_system_memory"); }
+SEXP ps__system_swap() { return ps__dummy("ps_system_swap"); }
 
 SEXP psll_handle(SEXP x, SEXP y) { return ps__dummy("ps_handle"); }
 SEXP psll_format(SEXP x) { return ps__dummy("ps_format"); }
@@ -107,10 +107,14 @@ SEXP psll_interrupt(SEXP x, SEXP y, SEXP z) { return ps__dummy("ps_interrupt"); 
 SEXP psll_connections(SEXP x) { return ps__dummy("ps_connections"); }
 SEXP psll_get_nice(SEXP x) { return ps__dummy("ps_get_nice"); }
 SEXP psll_set_nice(SEXP x, SEXP y) { return ps__dummy("ps_set_nice"); }
+SEXP psll_memory_uss(SEXP p) { return ps__dummy("psll_memory_uss"); }
+SEXP psll_get_cpu_aff(SEXP p) { return ps__dummy("psll_get_cpu_aff"); }
+SEXP psll_set_cpu_aff(SEXP p) { return ps__dummy("psll_set_cpu_aff"); }
 
 SEXP ps__init(SEXP x, SEXP y) { return R_NilValue; /* this needs to run to load package */ }
 SEXP ps__kill_if_env(SEXP x, SEXP y, SEXP z, SEXP a) { return ps__dummy("ps__kill_if_env"); }
 SEXP ps__find_if_env(SEXP x, SEXP y, SEXP z) { return ps__dummy("ps__find_if_env"); }
+SEXP ps__memory_maps(SEXP p) { return ps__dummy("ps__memory_maps"); }
 
 SEXP psp__pid_exists(SEXP x) { return ps__dummy("psp__pid_exists"); }
 SEXP psp__stat_st_rdev(SEXP x) { return ps__dummy("psp__stat_st_rdev"); }

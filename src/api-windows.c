@@ -920,7 +920,7 @@ SEXP psll_interrupt(SEXP p, SEXP ctrlc, SEXP interrupt_path) {
   iret = ps__utf8_to_utf16(cinterrupt_path, &wpath);
   if (iret) goto error;
 
-  iret = snprintf(arguments, sizeof(arguments) - 1, "interrupt.exe %d %s", handle->pid,
+  iret = snprintf(arguments, sizeof(arguments) - 1, "interrupt.exe %d %s", (int) handle->pid,
 		  cctrlc ? "c" : "break");
   if  (iret < 0) goto error;
 
@@ -951,7 +951,7 @@ SEXP psll_interrupt(SEXP p, SEXP ctrlc, SEXP interrupt_path) {
     /* lpProcessInformation = */ &info);
 
   if (!iret) {
-    ps__set_error_from_errno(0);
+    ps__set_error_from_errno();
     goto error;
   }
 
@@ -1269,7 +1269,7 @@ SEXP ps__disk_partitions(SEXP rall) {
   num_bytes = GetLogicalDriveStrings(254, drive_letter);
 
   if (num_bytes == 0) {
-    ps__set_error_from_errno(0);
+    ps__set_error_from_errno();
     goto error;
   }
 

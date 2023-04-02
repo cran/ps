@@ -1,3 +1,8 @@
+# ps 1.7.4
+
+* `ps::ps_get_cpu_affinity()` now works for other processes on Linux, not only
+  the calling process.
+
 # ps 1.7.3
 
 * The output of `ps_disk_usage()`, `ps_disk_partitions()` and

@@ -1,8 +1,8 @@
-849532421b87a1cb943ed2427402875f *DESCRIPTION
+6ecc4cc53149804534c82d63e1b23442 *DESCRIPTION
 ed122a1c3e9892dd2b2d2e3518850898 *LICENSE
 63e8ae8f640a1e2c28ae10746f3c09b1 *LICENSE.note
 00f782a74e3166baa3b64b274372d690 *NAMESPACE
-fa80c2c6356814e0d7f31f83cab1329b *NEWS.md
+0b64b59db234166425c78b3343397b17 *NEWS.md
 773e4db09280c1e2b0463de9764546f6 *R/compat-vctrs.R
 a2463337c7139d52fda10131d2c4f01f *R/disk.R
 f2b86074ffeec5a3c7c4b21bf126f448 *R/errno.R
@@ -81,8 +81,8 @@ ddb5d56cc23031a4faf33ed3e859587e *man/ps_uids.Rd
 b90f28ca6453b80a98510a27fd9f764b *man/signals.Rd
 087f1952800aa8090dd414bc2e78dcee *src/Makevars.in
 b5f8310122548eaa2c3eb3e695790eec *src/api-common.c
-f223241656eafb967f680fd77ad2a07d *src/api-linux.c
-7b8e17168747600e5d4dbd408b1f7d29 *src/api-macos.c
+c8d556ce588ea977ffe233b87f878091 *src/api-linux.c
+57d2e3464f3a2fecc4ae678fa749bcfe *src/api-macos.c
 7fc3702cc57ba10db2527856fea03888 *src/api-posix.c
 2f66c9907cb31f96a470ddc5d9cdce0b *src/api-windows-conn.c
 e23669963860332304da6b6b872787a8 *src/api-windows.c

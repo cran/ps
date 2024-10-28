@@ -1,11 +1,11 @@
-c6d8ae228feaacb06f312eb371225e26 *DESCRIPTION
+b800e85a5c365951c36c375f5ecf043f *DESCRIPTION
 41f0f80dd5efa175d8864b3e5612c5d0 *LICENSE
 63e8ae8f640a1e2c28ae10746f3c09b1 *LICENSE.note
 618c1ec7b36302a80533681f30e7b02d *NAMESPACE
-130eb1a476b9c5726e2e4bd63da964b7 *NEWS.md
+13150980a92f0d6c7620c2c9ed6e43ba *NEWS.md
 d82e6c4bbaeec46be16e08829e286ab1 *R/cleancall.R
 773e4db09280c1e2b0463de9764546f6 *R/compat-vctrs.R
-14dc56dd89513eb2c9fa432958b0bf10 *R/disk.R
+dea19430022f2fb12ce82ebd3185a74d *R/disk.R
 f2b86074ffeec5a3c7c4b21bf126f448 *R/errno.R
 e9d5da70cc329bca4418e19af321c9b8 *R/error.R
 03d55c8abff700b07215c68b8a944acf *R/glob.R
@@ -47,7 +47,7 @@ c98816e750a20a8b942f063ab8dc894d *man/ps_cpu_count.Rd
 c8da91226f7ac08312a56fcf76bd4d9d *man/ps_create_time.Rd
 103ccf825a1f7d6c86907127d08c62de *man/ps_cwd.Rd
 62d4cf9824c7d89703953e429792d4fc *man/ps_descent.Rd
-6b940e047a926ede4255b838dc2191aa *man/ps_disk_io_counters.Rd
+69e4f715ad257c95d08d0215a226fc76 *man/ps_disk_io_counters.Rd
 055a7d8e5ebff62713df28bc31e441d4 *man/ps_disk_partitions.Rd
 0ecc35ff26e31fea9fbdcea47925e1bd *man/ps_disk_usage.Rd
 62014cbb6cbab3d14449bf2f903349fa *man/ps_environ.Rd
@@ -92,7 +92,7 @@ b90f28ca6453b80a98510a27fd9f764b *man/signals.Rd
 087f1952800aa8090dd414bc2e78dcee *src/Makevars.in
 b5f8310122548eaa2c3eb3e695790eec *src/api-common.c
 54c8977cfac9e2bc622da8596c020a42 *src/api-linux.c
-569631f9773100b52009e33736a47cd6 *src/api-macos.c
+a1675e258f10f5cef397a726bec91fb7 *src/api-macos.c
 e25658bbb0129feed79d0752fe41e5e9 *src/api-posix.c
 2f66c9907cb31f96a470ddc5d9cdce0b *src/api-windows-conn.c
 f2f2ee30fc3dab0d78331da429f01578 *src/api-windows.c
@@ -110,7 +110,7 @@ c39d21cbc780797df0bccce327b78e1f *src/arch/windows/process_handles.h
 07a0b2f422fb87c0d5e789157fac4b31 *src/cleancall.h
 283d68dbe242227537d431feaea6bb3b *src/common.c
 73ab5051f40c0369b3cf2dce40d7bcf9 *src/common.h
-ccd54eb3c955aa875a9cac2500d90d6e *src/dummy.c
+954a20f5d70b048936e6d46e4bb236c6 *src/dummy.c
 dad0993904e3dbfab044e6096bc61ee7 *src/extra.c
 f7a2db3b40418b3c899953a292f3fa9c *src/init.c
 25293087d29ce032315b03ca28b91cf7 *src/install.libs.R

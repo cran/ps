@@ -1,8 +1,8 @@
-8ebf7bd6cf2d2863bc0d0bf6ac08967f *DESCRIPTION
+e4efca09e61c6f5673e2469a9e68345d *DESCRIPTION
 41f0f80dd5efa175d8864b3e5612c5d0 *LICENSE
 63e8ae8f640a1e2c28ae10746f3c09b1 *LICENSE.note
 618c1ec7b36302a80533681f30e7b02d *NAMESPACE
-3d7e702d1de929d6d5e0832aa4dc5949 *NEWS.md
+05fb26a6e11dfcfb54049a521ef74c9b *NEWS.md
 d82e6c4bbaeec46be16e08829e286ab1 *R/cleancall.R
 773e4db09280c1e2b0463de9764546f6 *R/compat-vctrs.R
 dea19430022f2fb12ce82ebd3185a74d *R/disk.R
@@ -10,7 +10,7 @@ f2b86074ffeec5a3c7c4b21bf126f448 *R/errno.R
 e9d5da70cc329bca4418e19af321c9b8 *R/error.R
 03d55c8abff700b07215c68b8a944acf *R/glob.R
 52c361a719c3e35e5ab1e56e5cd950b1 *R/iso-date.R
-36d30194a58f87b36c35e61393be0a37 *R/kill-tree.R
+14b7c9976b158c8cc8d21989b1fb8e8d *R/kill-tree.R
 60b44d38daad71c78f04d2a839dde310 *R/linux.R
 e3ff73d9b31a2c4c680ae7bd23f8f445 *R/low-level.R
 92a3b0e470dbcbb6215e52d9885ad795 *R/macos.R
@@ -31,7 +31,7 @@ cdce6d322c5c6d74bd997a048092f38f *configure
 757ef8281ef2a1ebcbcc8235aeee2d0e *configure.win
 f76a886fa32868f9eeaf9b0dfa9dc7ad *inst/WORDLIST
 28613e2a5a14a4fe95f362359b2af465 *inst/internals.md
-5bb8cbef9142337897cc546c8551e5fd *inst/tools/error-codes.R
+091aaf2390dd5b5ede106020d75e38fb *inst/tools/error-codes.R
 94d5c399a5ddddea6407eb43cb5e6ef4 *inst/tools/winver.R
 39d38510be0ddddedbd841e507488aa8 *man/CleanupReporter.Rd
 6bdd1f2ec6ac42218f8b5db8cac6bccb *man/errno.Rd
@@ -61,7 +61,7 @@ be48d18e6ff7e8d8eeede69dce3fb7f8 *man/ps_get_cpu_affinity.Rd
 8ad25625d6957b2a325dfdb5bb9a5662 *man/ps_interrupt.Rd
 ff872e411570beb96fa31eeacc7a6d55 *man/ps_is_running.Rd
 1c56be61654e5aca6a0b383729d602f6 *man/ps_kill.Rd
-eb8b8d3d44c19d7808df2581381c55d5 *man/ps_kill_tree.Rd
+725609fde6881525a962e3d9c04c2f13 *man/ps_kill_tree.Rd
 8605cbb7a0ef80fc382a435cf7a6bb0d *man/ps_loadavg.Rd
 87bb86fb000acd77c256ffaa481fc034 *man/ps_memory_info.Rd
 b0d8acd4c9c04321eb35965104d2421a *man/ps_name.Rd
@@ -91,9 +91,9 @@ ddb5d56cc23031a4faf33ed3e859587e *man/ps_uids.Rd
 b90f28ca6453b80a98510a27fd9f764b *man/signals.Rd
 087f1952800aa8090dd414bc2e78dcee *src/Makevars.in
 b5f8310122548eaa2c3eb3e695790eec *src/api-common.c
-54c8977cfac9e2bc622da8596c020a42 *src/api-linux.c
+4140310ee4c06ab78ebc57eaec7c3e7e *src/api-linux.c
 a1675e258f10f5cef397a726bec91fb7 *src/api-macos.c
-d3359291af852cd81f6ce2beb359292b *src/api-posix.c
+e136e9696c836867ccf3992e459cd6db *src/api-posix.c
 2f66c9907cb31f96a470ddc5d9cdce0b *src/api-windows-conn.c
 b8f9b4468b1868443b60094657a879f1 *src/api-windows.c
 59836ad0c8323e75e945ff49a68db500 *src/arch/macos/apps.m
@@ -109,7 +109,7 @@ c39d21cbc780797df0bccce327b78e1f *src/arch/windows/process_handles.h
 82b5161fea28cdd8f50f6b94451ab72d *src/cleancall.c
 07a0b2f422fb87c0d5e789157fac4b31 *src/cleancall.h
 283d68dbe242227537d431feaea6bb3b *src/common.c
-73ab5051f40c0369b3cf2dce40d7bcf9 *src/common.h
+8a3b6cebee5d5c3b9c816b7f8f3fbd99 *src/common.h
 a18fee26c965952b0724b5c38002a400 *src/dummy.c
 dad0993904e3dbfab044e6096bc61ee7 *src/extra.c
 5d7449101690034f5624b3017ec0d5c7 *src/init.c
@@ -117,12 +117,12 @@ dad0993904e3dbfab044e6096bc61ee7 *src/extra.c
 3db35656c2495dee4cbe752196cb47b0 *src/interrupt.c
 bd7ce57920e68af62c55b5ecf198b80d *src/linux.c
 c78665dce54923bee1161fe21959705f *src/macos.c
-b9f4521bf2aa4cfa6978558cff8c00de *src/posix.c
+16b4b079682cba26822f30f23ee7acb2 *src/posix.c
 2507b0980ff4bc172f06f04b9a37a935 *src/posix.h
 eab96c69af71c6fab04d1a446994f14d *src/ps-internal.h
 f358a6a4029a303f6de0519db5c8abf1 *src/ps.h
 ca083890818d5919ff47b6854dc79d83 *src/px.c
-b32b4fb3d1af0315cb26e5264bb58873 *src/windows.c
+93a61db13cbeedc39e0ab1cb63638c0f *src/windows.c
 0897962482dbdf5c733d04218c227089 *src/windows.h
 07f90e6173f567e33bb5b4f4c78c3c06 *tests/testthat.R
 18841bef269204cc816fe547885a1c92 *tests/testthat/_snaps/common.md
